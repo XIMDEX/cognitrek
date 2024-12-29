@@ -1,10 +1,6 @@
-# Entorno virtual
 venv/
+.venv/
 
-# Archivos de configuración sensibles
 .env
-pdfservices-api-credentials.json
-
-# Archivos temporales
 __pycache__/
 *.pyc
