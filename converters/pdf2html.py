@@ -158,13 +158,23 @@ class AdapterPdf2Html:
                 'bbox': bbox
             })
             html_image = self.generate_image_html(f'image_page_{page_num}_{img_count}', path_img, bbox)
-            data_section['blocks'].append(html_image)
+            data_section['blocks'].append({
+                'type': 'image',
+                'content': html_image,
+                'bbox': bbox,
+                'id': self.tag_id
+            })
             self.tag_id += 1
             img_count += 1 
         
         for block in blocks:
             html_text = self.generate_text_html(block, page_num)
-            data_section['blocks'].append(html_text)
+            data_section['blocks'].append({
+                'type': 'text',
+                'content': html_text,
+                'bbox': block['bbox'],
+                'id': self.tag_id
+            })
 
         html_path = self.output_dir / f"{self.pdf_name}_page_{page_num + 1}.html"
         with open(html_path, "w", encoding="utf-8") as f:
