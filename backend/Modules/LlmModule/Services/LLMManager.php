@@ -38,7 +38,6 @@ class LLMManager
         $apiKey = $driverConfig['api_key'] ?? null;
         $baseUrl = $driverConfig['base_url'] ?? null;
 
-        // Instanciamos el adaptador con el servicio HTTP
         return new $class($apiKey, $baseUrl, $this->httpClient);
     }
 }

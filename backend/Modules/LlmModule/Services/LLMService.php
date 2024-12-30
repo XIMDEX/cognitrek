@@ -3,7 +3,6 @@
 namespace Modules\LlmModule\Services;
 
 use App\Models\Resource;
-use App\Services\LLMManager;
 
 class LLMService
 {
