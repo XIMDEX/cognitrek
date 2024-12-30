@@ -1,15 +1,2 @@
-pdfservices-sdk==4.0.0
-python-dotenv
-pdfplumber
 Pillow
-BeautifulSoup4
 PyMuPDF
-Camelot
-label-studio
-torch 
-torchvision
-ultralytics
-fonttools
-pymupdf4llm
-matplotlib 
-numpy

@@ -1,15 +1,14 @@
-import fitz 
-import os
-from datetime import datetime
-from pathlib import Path
-import io
-
 import argparse
-
-from PIL import Image
-from io import BytesIO
+import io
+import os
+import json
 
 from collections import Counter
+from datetime import datetime
+from pathlib import Path
+
+from PIL import Image
+import fitz
 
 IMAGES_DIR = "images"
 FONTS_DIR = "fonts"
@@ -68,6 +67,7 @@ HTML = """
 """
 
 class AdapterPdf2Html:
+
     def __init__(self, pdf_path, output_dir):
         self.pdf_document = fitz.open(pdf_path)
         self.pdf_name = Path(pdf_path).stem
@@ -186,14 +186,17 @@ class AdapterPdf2Html:
         self.json_data['fonts'] = []
         self.json_data['unit_mesuerement'] = self.unit_mesuerement
         
-        
-
     def process_pdf(self):
         self.add_data_to_json()
 
         for page_num in range(len(self.pdf_document)):
             self.process_page(page_num)
-    
+
+    def generate_json(self):
+        json_path = self.output_dir / "raw.json"
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(self.json_data, f, indent=4)
+
     def convert_cff_to_otf(input_path, output_dir=None):
         """
         Convierte un archivo .cff a .otf utilizando fontTools
@@ -243,7 +246,6 @@ class AdapterPdf2Html:
             print(f"Error convirtiendo CFF a OTF: {e}")
             return None
     
-
     def is_justified(self, lines, block_width, threshold=5):
         """
         Determina si las líneas en un bloque de texto están justificadas.
@@ -394,8 +396,7 @@ class AdapterPdf2Html:
         output_html += html_content
         self.zindex += 1
         return output_html
-        
-    
+         
     def generate_image_html(self, image_name, path, bbox):
         posx = bbox[0] * self.scale
         posy = bbox[1] * self.scale
@@ -414,10 +415,8 @@ def process_pdf(pdf_path, output_dir=None):
     analyzer = AdapterPdf2Html(pdf_path, output_dir)
     analyzer.create_scaffold_output_directory()
     analyzer.process_pdf()    
+    analyzer.generate_json()
     analyzer.close()
-
-    html_path = True
-    return html_path
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extract text and images from a PDF file')
