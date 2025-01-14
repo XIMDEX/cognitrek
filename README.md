@@ -23,7 +23,7 @@ COGNITREK is an innovative initiative designed to empower individuals to underst
 
 The repository is organized into directories corresponding to the deliverables for each project milestone, where the architecture, components, and other details are outlined. 
 
-The `software` folder contains all the developed code, organized into three main subdirectories:
+The `software` folders contains all the developed code, organized into three main subdirectories:
 
 1. **Backend**: This directory includes the server-side components, APIs, and other services related to the application's core functionality.
 2. **Converters**: Here, you will find the scripts and utilities responsible for transforming or processing data in various formats, ensuring compatibility and smooth integration across the system.
