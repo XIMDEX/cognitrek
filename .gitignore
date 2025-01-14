@@ -1,0 +1,24 @@
+# Ignorar archivos temporales del sistema
+.DS_Store
+Thumbs.db
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+
+
+# Ignorar archivos de compilación
+/build/
+*.o
+*.exe
+
+# Ignorar configuraciones específicas de entornos
+.env
+
+# Ignorar configuraciones específicas de editores
+.vscode/
+*.swp
+
+#Log file
+*.log
+
