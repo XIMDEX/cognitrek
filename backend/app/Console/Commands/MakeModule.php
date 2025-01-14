@@ -49,8 +49,10 @@ class MakeModule extends Command
         File::put("$modulePath/Routes/api.php", $this->getApiRoutesTemplate($moduleSlug));
         File::put("$modulePath/Controllers/ExampleController.php", $this->getControllerTemplate($moduleName));
         File::put("$modulePath/Services/ExampleService.php", $this->getServiceTemplate($moduleName));
-        // File::put("$modulePath/Models/ExampleModel.php", $this->getModelTemplate($moduleName));
         File::put("$modulePath/Config/config.php", $this->getConfigTemplate($moduleName));
+        File::put("$modulePath/dependencies.txt", $this->getDependenciesTemplate($moduleName));
+
+        exec('composer dump-autoload');
 
         // Inform the user that the module was created successfully
         $this->info("Module '$moduleName' created successfully with slug '$moduleSlug'.");
@@ -87,15 +89,15 @@ class MakeModule extends Command
      */
     private function getServiceTemplate($moduleName)
     {
-        return "<?php\n\nnamespace Modules\\$moduleName\\Services;\n\nclass ExampleService\n{\n    public function performAction()\n    {\n        return 'Action performed by $moduleName service';\n    }\n}\n";
+        return "<?php\n\nnamespace Modules\\$moduleName\\Services;\n\nclass ExampleService\n{\n    public function performAction(\$params = null)\n    {\n        return 'Action performed by $moduleName service';\n    }\n}\n";
     }
 
     /**
      * Template for the model file.
      */
-    private function getModelTemplate($moduleName)
+    private function getDependenciesTemplate($moduleName)
     {
-        return "<?php\n\nnamespace Modules\\$moduleName\\Models;\n\nuse Illuminate\Database\Eloquent\Model;\n\nclass ExampleModel extends Model\n{\n    protected \$fillable = [\n        // Fillable fields for the model\n    ];\n}\n";
+        return "// Add dependencies required and install on root project\n\n";
     }
 
     /**
