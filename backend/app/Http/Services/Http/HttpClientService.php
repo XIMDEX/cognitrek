@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Services\Http;
+namespace App\Http\Services\Http;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Response;
 
 class HttpClientService
 {
@@ -20,10 +21,15 @@ class HttpClientService
     /**
      * Realiza una petición HTTP.
      */
-    public function request(string $method, string $url, array $options = []): array
+    public function request(string $method, string $url, array $options = [], bool $json = true): array|Response
     {
         try {
             $response = $this->client->request($method, $url, $options);
+
+            if (!$json) {
+                return $response;
+            }
+
             $body = $response->getBody()->getContents();
             $data = json_decode($body, true);
 

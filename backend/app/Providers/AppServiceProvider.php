@@ -44,7 +44,7 @@ class AppServiceProvider extends ServiceProvider
             $configFile = "$modulePath/Config/config.php";
 
             if (file_exists($configFile)) {
-                $moduleName = basename($modulePath);
+                $moduleName = strtolower(basename($modulePath));
                 $this->mergeConfigFrom($configFile, $moduleName);
             }
         }

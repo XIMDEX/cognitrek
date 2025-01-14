@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\LLM\Adapters;
+namespace App\Http\Services\Ximdex;
 
-use App\Services\Http\HttpClientService;
+use App\Http\Services\Http\HttpClientService;
 use Exception;
 use Illuminate\Support\Facades\Cache;
 

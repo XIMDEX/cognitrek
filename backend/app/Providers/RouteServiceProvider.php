@@ -86,7 +86,7 @@ class RouteServiceProvider extends ServiceProvider
 
             $apiRoutes = "$modulePath/Routes/api.php";
             if (file_exists($apiRoutes)) {
-                Route::prefix('api')
+                Route::prefix('api/v1')
                     ->middleware('api')
                     ->namespace("Modules\\$moduleName\\Controllers")
                     ->group($apiRoutes);

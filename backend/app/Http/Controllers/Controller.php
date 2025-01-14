@@ -12,14 +12,25 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
 
-    public function useService($serviceName)
+    public function useService($serviceName, $params)
     {
         try {
-            $exampleService = ModuleServiceHelper::getService($serviceName);
+            $moduleService = ModuleServiceHelper::getService($serviceName);
     
-            if ($exampleService) {
-                return $exampleService->performAction();
+            if ($moduleService) {
+                return $moduleService->performAction($params);
             }
+        } catch (ServiceNotFoundException $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        }
+    }
+
+    public function getService($serviceName)
+    {
+
+        try {
+            $moduleService = ModuleServiceHelper::getService($serviceName);
+            return $moduleService;
         } catch (ServiceNotFoundException $e) {
             return response()->json(['error' => $e->getMessage()], 404);
         }
