@@ -1,2 +1,4 @@
 Pillow
 PyMuPDF
+mammoth
+pandas

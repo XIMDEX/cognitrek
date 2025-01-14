@@ -9,6 +9,7 @@ from pathlib import Path
 
 from PIL import Image
 import fitz
+import pandas as pd
 
 IMAGES_DIR = "images"
 FONTS_DIR = "fonts"
@@ -87,11 +88,12 @@ class AdapterPdf2Html:
 
     def create_scaffold_output_directory(self):
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        (self.output_dir / IMAGES_DIR).mkdir(exist_ok=True)
-        (self.output_dir / FONTS_DIR).mkdir(exist_ok=True)
+        (self.output_dir / 'html' ).mkdir(exist_ok=True)
+        (self.output_dir / 'html' / IMAGES_DIR).mkdir(exist_ok=True)
+        (self.output_dir / 'html' / FONTS_DIR).mkdir(exist_ok=True)
 
     def decimal_to_hex_color(self, decimal_value):
-        hex_value = hex(decimal_value)[2:] 
+        hex_value = hex(decimal_value & 0xFFFFFF)[2:]
         hex_value = hex_value.zfill(6)
         return f"#{hex_value.upper()}"
     
@@ -134,7 +136,7 @@ class AdapterPdf2Html:
                             pix = fitz.Pixmap(fitz.csRGB, pix)
                             img_data = pix.tobytes("png")
                             image_pix = Image.open(io.BytesIO(img_data))
-                            image_pix.save(str(self.output_dir / "images" / f"page_{page_num}_{img_count}.png"))
+                            image_pix.save(str(self.output_dir / "html" / "images" / f"page_{page_num}_{img_count}.png"))
 
                         except:
                             try:
@@ -142,7 +144,7 @@ class AdapterPdf2Html:
                                 pix = fitz.Pixmap(fitz.csRGB, pix)
                                 img_data = pix.tobytes("png")
                                 image_pix = Image.open(io.BytesIO(img_data))
-                                image_pix.save(str(self.output_dir / "images" / f"page_{page_num}_{img_count}.png"))
+                                image_pix.save(str(self.output_dir / "html" / "images" / f"page_{page_num}_{img_count}.png"))
                             except Exception as e:
                                 print(f"Error to save image {xref}: {e}")
                 except Exception as e:
@@ -150,18 +152,20 @@ class AdapterPdf2Html:
             else:
                 print(f"Error to extract image {xref}: {e}")
         
-            path_img = f"{self.output_dir}/images/page_{page_num}_{img_count}.png"
+            path_img = f"{self.output_dir}/html/images/page_{page_num}_{img_count}.png"
             bbox = self.pdf_document[page_num].get_image_bbox(image[7])
             data_section['images'].append({
                 'id': self.tag_id,
                 'path': path_img,
-                'bbox': bbox
+                'bbox': self.rect_to_bbox(bbox)
             })
-            html_image = self.generate_image_html(f'image_page_{page_num}_{img_count}', path_img, bbox)
+            relative_path = self.output_dir.stem
+            relative_path = f"storage/{relative_path}/html/images/page_{page_num}_{img_count}.png"
+            html_image = self.generate_image_html(f'image_page_{page_num}_{img_count}', path_img, bbox, relative_path)
             data_section['blocks'].append({
                 'type': 'image',
                 'content': html_image,
-                'bbox': bbox,
+                'bbox': self.rect_to_bbox(bbox),
                 'id': self.tag_id
             })
             self.tag_id += 1
@@ -176,7 +180,13 @@ class AdapterPdf2Html:
                 'id': self.tag_id
             })
 
-        html_path = self.output_dir / f"{self.pdf_name}_page_{page_num + 1}.html"
+        html_path = self.output_dir / "html" / f"{self.pdf_name}_page_{page_num + 1}.html"
+
+        self.html_content = ""
+        for block in data_section['blocks']:
+            if block['content']:
+                self.html_content += block['content']
+
         with open(html_path, "w", encoding="utf-8") as f:
             f.write(self.html_page.replace('###XIMDEX_CONTENT###', self.html_content))
 
@@ -185,7 +195,10 @@ class AdapterPdf2Html:
 
         self.json_data['sections'].append(data_section)
 
-    def add_data_to_json(self, data):
+    def rect_to_bbox(self, rect):
+            return [rect.x0, rect.y0, rect.x1, rect.y1]
+    
+    def add_data_to_json(self):
         title_pdf = self.pdf_document.metadata['title'] or self.pdf_name
         self.json_data['title'] = title_pdf
         self.json_data['date'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -200,7 +213,7 @@ class AdapterPdf2Html:
         self.add_data_to_json()
 
         for page_num in range(len(self.pdf_document)):
-            self.process_page(page_num)
+            self.process_page(page_num, self.json_data['title'])
 
     def generate_json(self):
         json_path = self.output_dir / "raw.json"
@@ -315,7 +328,7 @@ class AdapterPdf2Html:
         font_size_common = font_size_counter.most_common(1)[0][0] * self.scale
         font_color_common = self.decimal_to_hex_color(font_color_counter.most_common(1)[0][0])
 
-        style = f"position: absolute; width: {width}{self.unit_mesuerement}; height: {height}{self.unit_mesuerement}; z-index: {self.zindex}; color: {font_color_common}; font-family: {font_family_common}; font-size: {font_size_common}{self.unit_mesuerement}; " 
+        style = f"position: relative;  z-index: {self.zindex}; color: {font_color_common}; font-family: {font_family_common}; font-size: {font_size_common}{self.unit_mesuerement}; " 
 
         counter_p  = 0
         for line in text_block['lines']:
@@ -352,7 +365,7 @@ class AdapterPdf2Html:
                 height = (span['bbox'][3] - span['bbox'][1]) * self.scale
                 relative_width = (span['bbox'][2] - span['bbox'][0]) * self.scale
                 relative_height = (span['bbox'][3] - span['bbox'][1]) * self.scale
-                span_style = f'position: absolute; left: {relative_pox_x * self.scale}{self.unit_mesuerement}; top: {relative_pox_y * self.scale}{self.unit_mesuerement}; font-family: {font_family}; font-size: {font_size}{self.unit_mesuerement}; color: {font_color}; width: {relative_width}{self.unit_mesuerement}; height: {relative_height}{self.unit_mesuerement};'
+                span_style = f'position: relative; font-family: {font_family}; font-size: {font_size}{self.unit_mesuerement}; color: {font_color};'
 
                 if superscripted:
                     text = f'<sup id="{self.tag_id}">{text}</sup>'
@@ -376,47 +389,120 @@ class AdapterPdf2Html:
                     text = f'<span id="{self.tag_id}" style="{span_style}">{text}</span>'
                     self.tag_id += 1
 
-                content += text
+                if superscripted or bold or italic or span_style:
+                    content += ' ' + text + ' '
+                else:
+                    content += text
 
 
-            if content[-1] == '-':
+            if len(content) > 0 and content[-1] == '-':
                 content = content[:-1]
     
-            if raw_txt[-1] in [".", ":"]:
+            if len(raw_txt) > 0 and raw_txt[-1] in [".", ":"]:
                 height = height - line['bbox'][3]
-                _style = f'left: {left}{self.unit_mesuerement}; top: {top}{self.unit_mesuerement}; height: {height}{self.unit_mesuerement};'
+                _style = f''
                 top = False
                 left = False
                 html_content = f'<p id="{self.tag_id}" style=\"{style}{_style}\">{content}</p>'
                 self.tag_id += 1
-                self.html_content += html_content
                 output_html += html_content
                 self.zindex += 1
                 counter_p += 1
                 content = ''
+                return html_content
 
 
         if top is False and left is False:
             return
         
-        _style = f'left: {left}{self.unit_mesuerement}; top: {top}{self.unit_mesuerement};'
-        html_content = f'p id="{self.tag_id}" style=\"{style}{_style}\">{content}</p>'
+        _style = f''
+        html_content = f'<p id="{self.tag_id}" style=\"{style}{_style}\">{content}</p>'
         self.tag_id += 1
-        self.html_content += html_content
         output_html += html_content
         self.zindex += 1
         return output_html
          
-    def generate_image_html(self, image_name, path, bbox):
+    def generate_image_html(self, image_name, path, bbox, relative_path):
         posx = bbox[0] * self.scale
         posy = bbox[1] * self.scale
         width = (bbox[2] - posx) * self.scale
         height = (bbox[3] - posy) * self.scale
-        style = f'position: absolute; left: {posx}{self.unit_mesuerement}; top: {posy}{self.unit_mesuerement}; width: {width}{self.unit_mesuerement}; height: {height}{self.unit_mesuerement}; z-index: {self.zindex};'
-        image =  f'<img id="{self.tag_id}" src="{path}" style="{style}" alt="{image_name}">'
-        self.html_content += image
+        style = f'position: relative;  z-index: {self.zindex};'
+        image =  f'<img id="{self.tag_id}" src="{relative_path}" style="{style}" alt="{image_name}">'
         self.zindex += 1
         return image
+    
+    
+    def pdf_to_markdown(self):
+        markdown_content = ""
+
+        for page_num, page in enumerate(self.pdf_document, start=1):
+            text = page.get_text("text") 
+            markdown_content += f"# Page {page_num} of {self.pdf_document.page_count}\n\n{text}\n\n"
+
+        # Guardar el contenido extraído en un archivo Markdown
+        with open(self.output_dir / 'raw.md', "w", encoding="utf-8") as md_file:
+            md_file.write(markdown_content)
+
+    def is_overlapping(self, bbox1, bbox2):
+        x1, y1, x2, y2 = bbox1
+        x3, y3, x4, y4 = bbox2
+        return not (x2 < x3 or x4 < x1 or y2 < y3 or y4 < y1)
+
+    def detect_columns(self, blocks, tolerance=10):
+        lefts = sorted(blocks['bbox'].apply(lambda bbox: bbox[0]).unique())
+        clusters = []
+        current_cluster = [lefts[0]]
+
+        for left in lefts[1:]:
+            if abs(left - current_cluster[-1]) <= tolerance:
+                current_cluster.append(left)
+            else:
+                clusters.append(current_cluster)
+                current_cluster = [left]
+        clusters.append(current_cluster)
+
+        column_map = {val: idx for idx, cluster in enumerate(clusters) for val in cluster}
+        blocks['column'] = blocks['bbox'].apply(lambda bbox: column_map[bbox[0]])
+        return blocks
+
+    
+    def normalize_bbox(self, bbox):
+        if len(bbox) == 4 and isinstance(bbox, list):
+            return bbox  
+        elif isinstance(bbox, list) and len(bbox) == 2 and all(isinstance(coord, tuple) for coord in bbox):
+            return [bbox[0][0], bbox[0][1], bbox[1][0], bbox[1][1]]
+        else:
+            return [bbox[0], bbox[1], bbox[2], bbox[3]]
+        
+    def sort_blocks(self, blocks):
+        
+        for block in blocks:
+            block['bbox'] = self.normalize_bbox(block['bbox'])
+
+        df = pd.DataFrame(blocks)
+
+        if not df.empty:
+            unique_lefts = df['bbox'].apply(lambda bbox: bbox[0]).nunique()
+            if unique_lefts > 1:
+                df = self.detect_columns(df)
+                df['sort_key'] = df.apply(lambda row: (row['column'], row['bbox'][1], row['bbox'][0]), axis=1)
+            else:
+                df['sort_key'] = df['bbox'].apply(lambda bbox: (bbox[1], bbox[0]))
+
+        sorted_blocks = df.sort_values(by='sort_key').to_dict(orient='records')
+
+        final_order = []
+        for block in sorted_blocks:
+            if block['type'] == 'image':
+                final_order.append(block)
+                overlapping_texts = [b for b in sorted_blocks if b['type'] == 'text' and self.is_overlapping(b['bbox'], block['bbox'])]
+                final_order.extend(overlapping_texts)
+                sorted_blocks = [b for b in sorted_blocks if b not in overlapping_texts]
+            elif block not in final_order:
+                final_order.append(block)
+
+        return final_order
 
     def close(self):
         self.pdf_document.close()
@@ -425,16 +511,17 @@ def process_pdf(pdf_path, output_dir=None):
     analyzer = AdapterPdf2Html(pdf_path, output_dir)
     analyzer.create_scaffold_output_directory()
     analyzer.process_pdf()    
+    analyzer.pdf_to_markdown()
     analyzer.generate_json()
     analyzer.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Extract text and images from a PDF file')
-    parser.add_argument('output', help='Output directory', default=None)
     parser.add_argument('pdf', help='Path to the PDF file')
+    parser.add_argument('output', help='Output directory', default=None)
     args = parser.parse_args()
-    pdf_path = args.pdf_path
-    outputdir = args.outputdir
+    pdf_path = args.pdf
+    outputdir = args.output
     try:
         process_pdf(pdf_path, outputdir)
     except Exception as e:
