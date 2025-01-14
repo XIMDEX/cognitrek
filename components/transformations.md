@@ -1,5 +1,7 @@
 # Documentation of Python Scripts
 
+**This component is located in the `converters` folder.**
+
 This document provides detailed information about two Python scripts, docx2html.py and pdf2html.py, designed to convert .docx and .pdf files into structured HTML formats. These scripts aim to facilitate document processing by extracting text, images, and metadata while preserving the original structure as much as possible.
 
 ## docx2html.py
