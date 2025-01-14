@@ -2,11 +2,11 @@
 
 return [
     // General configurations for the module
-    'name' => 'ViewerModule',
+    'name' => 'AuthXdirModule',
     'version' => '1.0.0',
 
     // Register services
     'services' => [
-        'viewer_service' => \Modules\ViewerModule\Services\ViewerService::class,
-    ]
+        'example_service' => \Modules\AuthXdirModule\Services\ExampleService::class,
+    ],
 ];

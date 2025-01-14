@@ -2,13 +2,13 @@
 
 namespace Modules\LlmModule\Services\Adapters;
 
-use App\Services\Http\HttpClientService;
+use App\Http\Services\Http\HttpClientService;
 
 class AnthropicAdapter extends LLMBaseAdapter
 {
-    public function __construct($apiKey, $baseUrl, HttpClientService $httpClient)
+    public function __construct($apiKey, $baseUrl, $model, HttpClientService $httpClient)
     {
-        parent::__construct($apiKey, $baseUrl, $httpClient);
+        parent::__construct($apiKey, $baseUrl, $model, $httpClient);
     }
 
     public function call($prompt, array $options = []): string

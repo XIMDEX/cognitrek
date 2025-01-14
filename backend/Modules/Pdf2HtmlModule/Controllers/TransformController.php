@@ -8,6 +8,7 @@ class TransformController extends Controller
 {
     public function transform()
     {
+        return response()->json(['status' => 'ok']);
         try {
             $resourceId = request()->route('resource_id');
             // get resourcef from XDAM

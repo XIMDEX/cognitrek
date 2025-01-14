@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\ViewerModule\Controllers\ViewerController;
 
-// API routes for the viewer module
 Route::group(['prefix' => 'viewer'], function() {
-    // Define your API routes here
+    Route::get('/health', function() {
+        return response()->json(['status' => 'ok']);
+    });
+    Route::get('/{resource_id}', [ViewerController::class, 'view'])->name('viewer.view');
 });

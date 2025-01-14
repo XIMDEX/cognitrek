@@ -2,7 +2,7 @@
 
 namespace Modules\LlmModule\Services;
 
-use App\Services\Http\HttpClientService;
+use App\Http\Services\Http\HttpClientService;
 
 class LLMManager
 {
@@ -11,7 +11,7 @@ class LLMManager
 
     public function __construct()
     {
-        $this->config = config('llm');
+        $this->config = config('llmmodule');
         $this->httpClient = new HttpClientService([
             'timeout' =>30,
         ]);
@@ -20,7 +20,7 @@ class LLMManager
     public function getDefaultLLM()
     {
         $default = $this->config['default'];
-        
+
         return $this->getLLM($default);
     }
 
@@ -37,7 +37,8 @@ class LLMManager
         $class = $driverConfig['class'];
         $apiKey = $driverConfig['api_key'] ?? null;
         $baseUrl = $driverConfig['base_url'] ?? null;
+        $model = $driverConfig['model'] ?? null;
 
-        return new $class($apiKey, $baseUrl, $this->httpClient);
+        return new $class($apiKey, $baseUrl, $model, $this->httpClient);
     }
 }
