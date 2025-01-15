@@ -1,4 +1,4 @@
-# Viewer Module
+# Viewer Module (VISOR component)
 
 **This component is located in the `backend/Modules/ViewerModule` folder.**
 
