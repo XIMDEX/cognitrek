@@ -5,7 +5,7 @@ namespace Modules\Pdf2HtmlModule\Services;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
-class TransformService
+class ConversionService
 {
 
     protected $pythonPath;
@@ -15,8 +15,8 @@ class TransformService
 
     public function __construct()
     {
-        $this->base_path = app()->basePath('../converters');
-        $this->venvPath = app()->basePath('../converters/venv');
+        $this->base_path = app()->basePath('./converters');
+        $this->venvPath = app()->basePath('./converters/venv');
         $venvBinPath = 'bin';
         $this->pythonPath = $this->venvPath . DIRECTORY_SEPARATOR . $venvBinPath . DIRECTORY_SEPARATOR . 'python';
         $this->scriptPath = $this->base_path . DIRECTORY_SEPARATOR . 'pdf2html.py';

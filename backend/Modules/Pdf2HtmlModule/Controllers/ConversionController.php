@@ -4,9 +4,9 @@ namespace Modules\Pdf2HtmlModule\Controllers;
 
 use App\Http\Controllers\Controller;
 
-class TransformController extends Controller
+class ConversionController extends Controller
 {
-    public function transform()
+    public function conversion()
     {
         return response()->json(['status' => 'ok']);
         try {
@@ -15,13 +15,13 @@ class TransformController extends Controller
             $resource = False;
             if ($resource) {
 
-                $output = 'Resource transformed successfully';
+                $output = 'Resource converted successfully';
             } else {
                 throw new \Exception('Resource not found');
             }
-            return response()->json(['message' => 'Resource transformed successfully', 'output' => $output]);
+            return response()->json(['message' => 'Resource converted successfully', 'output' => $output]);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Resource transformation failed', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Resource conversion failed', 'error' => $e->getMessage()], 500);
         }
     }
 }
