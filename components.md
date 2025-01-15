@@ -9,4 +9,4 @@ This document provides an overview of the available modules in the project. Clic
     - [Viewer](ComponentArchitecture/viewer.md): Service for rendering and management of resource views in a Laravel project
     - [Anonymizer](ComponentArchitecture/anonymizer.md): Service for encrypting and decrypting UUID's users to ensure data anonymity
 
-* [Transformation](ComponentArchitecture/transformations.md): Designed to convert .docx and .pdf files into structured HTML formats.
+* [Conversions](ComponentArchitecture/conversions.md): Designed to convert .docx and .pdf files into structured HTML formats.

@@ -33,7 +33,7 @@ class ResourceController extends Controller
         Storage::makeDirectory("public/".$resourceID);
         $params = $this->xDamService->getResource($resourceID);
         try {
-            $this->useService('transform_service', $params);
+            $this->useService('conversion_service', $params);
             $validated['content'] = storage_path("app/public/$resourceID/raw.json");
 
             $json = file_get_contents($validated['content']);

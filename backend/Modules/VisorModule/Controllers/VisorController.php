@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\ViewerModule\Controllers;
+namespace Modules\VisorModule\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Services\ResourceService;
 use App\Services\VariantService;
 use Illuminate\Support\Facades\Request;
 
-class ViewerController extends Controller
+class VisorController extends Controller
 {
     private $resourceService;
     private $variantService;
@@ -21,7 +21,7 @@ class ViewerController extends Controller
     public function view(Request $request, $resourceId)
     {
         try {
-            $service  = $this->getService('viewer_service');
+            $service  = $this->getService('visor_service');
             $resource = $this->resourceService->getByXdamId($resourceId);
             if (!$resource) {
                 throw new \Exception('Resource not found');

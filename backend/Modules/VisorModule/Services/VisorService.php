@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules\ViewerModule\Services;
+namespace Modules\VisorModule\Services;
 
-class ViewerService
+class VisorService
 {
     public function performAction($params = null)
     {
@@ -34,7 +34,7 @@ class ViewerService
                 'added_ids' => []
             ];
 
-            return response()->view('resource_viewer', $data);
+            return response()->view('resource_visor', $data);
 
         } catch (\Exception $e) {
             return response()->json(['message' => 'Resource view failed', 'error' => $e->getMessage()], 500);
