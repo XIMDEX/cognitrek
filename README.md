@@ -26,7 +26,7 @@ The repository is organized into directories corresponding to the deliverables f
 The `software` folders contains all the developed code, organized into three main subdirectories:
 
 1. **Backend**: This directory includes the server-side components, APIs, and other services related to the application's core functionality.
-2. **Converters**: Here, you will find the scripts and utilities responsible for transforming or processing data in various formats, ensuring compatibility and smooth integration across the system.
+2. **Converters**: Here, you will find the scripts and utilities responsible for transforming or processing data in various formats, ensuring compatibility and smooth integration across the system. It is located in the backend folder.
 3. **Frontend**: This folder contains the user interface code, including the web or app-based components that interact with the backend and provide the user experience.
 
 The XDAM (back-end and front-end) and XDIR (back-end and front-end) repositories are key components utilized by Cognitrek, having been driven forward by this project.
