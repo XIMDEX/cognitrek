@@ -4,6 +4,7 @@ namespace App\Http\Services\Http;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 
 class HttpClientService
@@ -24,6 +25,13 @@ class HttpClientService
     public function request(string $method, string $url, array $options = [], bool $json = true): array|Response
     {
         try {
+            if (isset($options['multipart']) && is_array($options['multipart'])) {
+                foreach ($options['multipart'] as &$part) {
+                    if (isset($part['contents']) && is_string($part['contents']) && file_exists($part['contents'])) {
+                        $part['contents'] = fopen($part['contents'], 'r');
+                    }
+                }
+            }
             $response = $this->client->request($method, $url, $options);
 
             if (!$json) {
@@ -35,8 +43,34 @@ class HttpClientService
 
             return $data ?? [];
         } catch (RequestException $e) {
-            // Aquí puedes manejar excepciones, logs u otras acciones
-            throw new HttpException($e->getMessage(), $e->getCode(), $e);
+            // Depuración: Mostrar el cuerpo de la respuesta si hay un error
+            if ($e->hasResponse()) {
+                echo $e->getResponse()->getBody()->getContents();
+            }
+
+            throw new \Exception($e->getMessage(), $e->getCode(), $e);
         }
+    }
+
+    public function getCurlCommand(Request $request, array $options): string
+    {
+        $method = strtoupper($request->getMethod());
+        $url = (string) $request->getUri();
+        $headers = $request->getHeaders();
+        $body = $request->getBody()->getContents();
+
+        $curlCommand = "curl -X {$method} '{$url}'";
+
+        foreach ($headers as $name => $values) {
+            foreach ($values as $value) {
+                $curlCommand .= " -H '{$name}: {$value}'";
+            }
+        }
+
+        if (!empty($body)) {
+            $curlCommand .= " --data '{$body}'";
+        }
+
+        return $curlCommand;
     }
 }

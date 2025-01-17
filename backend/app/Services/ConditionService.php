@@ -19,4 +19,14 @@ class ConditionService
     {
         return Condition::all();
     }
+
+    public function getById(string $id): ?Condition
+    {
+        return Condition::find($id);
+    }
+
+    public function getManyByIds(array $ids)
+    {
+        return Condition::whereIn('id', $ids)->get();
+    }
 }

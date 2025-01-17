@@ -18,7 +18,7 @@ class VisorController extends Controller
         $this->variantService = $variantService;
     }
     
-    public function view(Request $request, $resourceId)
+    public function visor(Request $request, $resourceId)
     {
         try {
             $service  = $this->getService('visor_service');
@@ -31,14 +31,39 @@ class VisorController extends Controller
 
             if (!$variants) $variants = [];
 
-            $resource = $this->resourceService->getContent($resource);
-            $resource['lang'] = $resource['language'];
-            $resource['id'] = $resourceId;
+            $content = $this->resourceService->getContent($resource);
+            $content['lang'] = $content['language'];
+            $content['id'] = $resourceId;
             
 
-            return $service->view($resource, $variants);
+            return $service->visor($content, $variants);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Resource view failed', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+
+    public function preview(Request $request, $resourceId)
+    {
+        try {
+            $service  = $this->getService('visor_service');
+            $resource = $this->resourceService->getByXdamId($resourceId);
+            if (!$resource) {
+                throw new \Exception('Resource not found');
+            }
+
+            $variants = $this->variantService->getAllByResourceOrdered($resource->id);
+
+            if (!$variants) $variants = [];
+
+            $content = $this->resourceService->getContent($resource);
+            $content['lang'] = $content['language'];
+            $content['id'] = $resourceId;
+            
+
+            return $service->preview($content, $variants);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Resource preview failed', 'error' => $e->getMessage()], 500);
         }
     }
 }
