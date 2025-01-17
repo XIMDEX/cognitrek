@@ -87,9 +87,40 @@ This guide explains how to implement a modular system in a Laravel application. 
             }
         }
     }
+    
+    protected function loadViews()
+    {
+        $modulesPath = base_path('Modules');
+
+        if (!File::exists($modulesPath)) {
+            return;
+        }
+
+        $modules = File::directories($modulesPath);
+
+        if (empty($modules)) {
+            return;
+        }
+
+        foreach ($modules as $modulePath) {
+            $viewsPath = "$modulePath/Views";
+
+            if (file_exists($viewsPath)) {
+                $moduleName = strtolower(basename($modulePath));
+                $moduleName = str_replace('module', '', $moduleName);
+                $this->loadViewsFrom($viewsPath, $moduleName);
+            }
+        }
+    }
+
     ```
 
-    Call this method in boot: `$this->loadModuleConfigurations();`
+    Call this methods in boot: 
+    
+    ```PHP
+        $this->loadModuleConfigurations();
+        $this->loadViews();
+    ```
 
 4. Add Autoload for Module Classes
 
