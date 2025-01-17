@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Models;
 
@@ -11,7 +11,7 @@ class Condition extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['id', 'type'];
+    protected $fillable = ['id', 'type', 'label'];
 
     public function setTypeAttribute($value)
     {
