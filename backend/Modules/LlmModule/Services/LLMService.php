@@ -16,39 +16,35 @@ class LLMService
 
     public function performAction($params = null)
     {
-        // $file = file_get_contents($params['path']);
-        // $json = json_decode($file, true);
-        // foreach ($json['sections'] as $i => $section) {
-        //     unset($json['sections'][$i]['images']);
-        // }
-        // $content = $json['sections'];
-        $file = file_get_contents($params['md']);
-        $content = nl2br(htmlspecialchars($file));
-        $id = $params['id'];
-        $output = [];
-
         try {
+            $this->checkParams($params);
+
             $llmManager = new LLMManager();
             $this->init($llmManager);
+            
+            if ($params['action'] == 'adaptation') {
+                $adaptation = $this->generateAdaptation($params['data']);
+
+                return $adaptation;
+            }
+
+            $params['data'] = storage_path("app/public/$params[id]/raw.md");
+
+
+            $file = file_get_contents($params['data']);
+            $content = nl2br(htmlspecialchars($file));
+            $id = $params['id'];
 
             switch ($params['action']) {
                 case 'resume':
-                    $resume = $this->generateResume($id, $content, $params['lang']);
-                    Storage::put("public/$id/resume.txt", $resume);
-                    $output['resume'] = 'resume.txt';
+                    $this->generateResume($id, $content, $params['lang']);
                     break;
                 case 'conceptual_map':
-                    $conceptual_map = $this->generateMentalMap($id, $content, $params['lang']);
-                    Storage::put("public/$id/conceptual_map.md", $conceptual_map);
-                    $output['conceptual_map'] = 'conceptual_map.md';
+                    $this->generateMentalMap($id, $content, $params['lang']);
                     break;
                 case 'all':
-                    $resume = $this->generateResume($id, $content, $params['lang']);
-                    $conceptual_map =$this->generateMentalMap($id, $content, $params['lang']);
-                    Storage::put("public/$id/resume.txt", $resume);
-                    Storage::put("public/$id/conceptual_map.md", $conceptual_map);
-                    $output['resume'] = 'resume.txt';
-                    $output['conceptual_map'] = 'conceptual_map.md';
+                    $this->generateResume($id, $content, $params['lang']);
+                    $this->generateMentalMap($id, $content, $params['lang']);
                     break;
                 default:
                     break;
@@ -59,6 +55,20 @@ class LLMService
         }
     }
 
+    public function checkParams($params)
+    {
+        if (!isset($params['id'])) {
+            throw new \Exception('id param not found');
+        }
+
+        if (!isset($params['lang'])) {
+            throw new \Exception('lang param not found');
+        }
+
+        if (!isset($params['action'])) {
+            throw new \Exception('action param not found');
+        }
+    }
 
     public function init(LLMManager $llmManager)
     {
@@ -74,11 +84,13 @@ class LLMService
         $llm = $this->llmManager->getDefaultLLM();
 
         $prompt = config('llmmodule.prompts.resume');
+        $prompt = file_get_contents($prompt);
         $prompt = str_replace('###XIMDEX_LANG###', $this->getLanguage($lang), $prompt);
         $prompt = str_replace('###XIMDEX_CONTENT###', $content, $prompt);
 
         $summary = $llm->call($prompt);
 
+        Storage::put("public/$id/resume.txt", $summary);
         return $summary;
     }
 
@@ -90,46 +102,51 @@ class LLMService
         $llm = $this->llmManager->getDefaultLLM();
 
         $prompt = config('llmmodule.prompts.conceptual_map');
+        $prompt = file_get_contents($prompt);
 
         $prompt = str_replace('###XIMDEX_LANG###', $this->getLanguage($lang), $prompt);
         $prompt = str_replace('###XIMDEX_CONTENT###', $content, $prompt);
 
         $map = $llm->call($prompt);
 
-        if (str_starts_with($map, "```markmap")) {
+        if (str_starts_with($map, "```markmap") or str_starts_with($map, "```markdown")) {
             $map = substr($map, 10);
         }
         if (str_ends_with($map, "```")) {
             $map = substr($map, 0, -3);
         }
 
+        Storage::put("public/$id/conceptual_map.md", $map);
         return $map;
     }
 
     /**
      * Generate a variant (a rewritten version) of the resource content in the specified language, preserving meaning but changing wording.
      */
-    public function generateVariant(Resource $resource, string $lang = 'en')
+    public function generateAdaptation($params)
     {
+        $content = $params['resource'];
+        $prompt = $params['prompt'];
+
         $llm = $this->llmManager->getDefaultLLM();
 
-        $prompt = <<<EOT
-You are a helpful assistant. The user will provide a text, and you must rewrite it into a variant in {$lang}:
-- Preserve the original meaning.
-- Do not introduce new information or hallucinations.
-- Use the same factual content from the provided text, but rephrase the sentences in a natural way.
-- The final answer must be strictly in {$lang}.
+        $prompt = config('llmmodule.prompts.' . $prompt);
+        if (!$prompt) {
+            return false;
+        }
+        $prompt = file_get_contents($prompt);
 
-Text:
-{$resource->content}
+        $lang = $params['lang'];     
+        $prompt = str_replace('###XIMDEX_LANG###', $this->getLanguage($lang), $prompt);
 
-Please provide a rephrased variant in {$lang}.
-EOT;
+        foreach ($content as $key => $value) {
+            $content[$key]['id'] = $value['page'];
+            $content[$key]['content'] = json_encode($value['blocks']);
+            unset($content[$key]['blocks']);
+        }
 
-        $variant = $llm->call($prompt);
+        $variant = $llm->batch($content, $prompt, []);
 
-        $resource->variant = $variant;
-        $resource->save();
 
         return $variant;
     }
@@ -163,4 +180,6 @@ EOT;
         if (isset(self::LANGUAGES_DICT[$lang])) return self::LANGUAGES_DICT[$lang];
         return 'same language of content';
     }
+
+
 }

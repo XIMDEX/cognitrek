@@ -42,7 +42,7 @@ class ResourceController extends Controller
             file_put_contents($validated['content'], json_encode($json));
 
             $data = [
-                'md' => storage_path("app/public/$resourceID/raw.md"),
+                'data' => storage_path("app/public/$resourceID/raw.md"),
                 'id' => $resourceID,
                 'lang' => $params['lang'],
                 'action' => 'all'
@@ -120,5 +120,49 @@ class ResourceController extends Controller
         
         $conceptual_map = $this->resourceService->getConceptualMap($resource);
         return response()->json(['conceptual_map' => $conceptual_map]);
+    }
+
+    public function regenerate_resume(Request $request, $id) {
+        $resource = $this->resourceService->getByXdamId($id);
+        if (!$resource) {
+            return response()->json(['error' => 'Resource not found'], 404);
+        }
+        $modified_patn = $this->get_modified_content($id);
+
+        $data = [
+            'md' => $modified_patn,
+            'id' => $id,
+            'lang' => $resource->language,
+            'action' => 'resume'
+        ];
+        $this->useService('llm_service', $data);
+        $resume = $this->resourceService->getResume($resource);
+        return response()->json(['summary' => $resume]);
+    }
+
+    public function regenerate_conceptualmap(Request $request, $id) {
+        $resource = $this->resourceService->getByXdamId($id);
+        if (!$resource) {
+            return response()->json(['error' => 'Resource not found'], 404);
+        }
+
+        $modified_patn = $this->get_modified_content($id);
+
+        $data = [
+            'md' => $modified_patn,
+            'id' => $id,
+            'lang' => $resource->language,
+            'action' => 'conceptual_map'
+        ];
+        $this->useService('llm_service', $data);
+        $conceptual_map = $this->resourceService->getConceptualMap($resource);
+        return response()->json(['conceptual_map' => $conceptual_map]);
+    }
+
+    public function get_modified_content($id) {
+
+        // TODO - get the modified content with adaptations
+
+        return storage_path("app/public/$id/raw.md");
     }
 }

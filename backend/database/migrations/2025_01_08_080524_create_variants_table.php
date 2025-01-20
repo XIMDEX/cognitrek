@@ -14,6 +14,8 @@ class CreateVariantsTable extends Migration
             $table->unsignedBigInteger('condition_id');
             $table->text('content');
             $table->text('type');  // content | resume | conceptual_map
+            $table->string('label')->nullable(); 
+            $table->string('proccessing_id')->nullable();
             $table->timestamps();
 
             $table->foreign('resource_id')->references('id')->on('resources')->onDelete('cascade');

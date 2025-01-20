@@ -9,7 +9,7 @@ class Variant extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['id', 'resource_id', 'condition_id', 'content'];
+    protected $fillable = ['id', 'resource_id', 'condition_id', 'content', 'type', 'label'];
 
     public function resource()
     {
