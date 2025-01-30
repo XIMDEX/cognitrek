@@ -43,22 +43,22 @@ class VariantController extends Controller
         return response()->json($variants);
     }
 
-    public function store(Request $request)
-    // public function store(Request $request, $resourceID)
+    public function store(Request $request, $resourceID)
     {
         try {
 
-            // $validated = $request->validate([
-            //     'resource_id' => 'required|string',
-            //     'conditions' => 'required|array',
-            //     'content' => 'required|string',
-            // ]);
-            $resourceID = '9df6f257-4ad4-44a6-b3ca-6dc97216b8ca';
+            $validated = $request->validate([
+                'resource_id' => 'string',
+                'conditions' => 'required|array',
+                'content' => 'required|string',
+                'user_data' => 'array'
+            ]);
 
-            // $params = $this->xDamService->getResource($resourceID);
+            $resourceID = $validated['resource_id'] ?? $resourceID;
+
             $resource = $this->resourceService->getByXdamId($resourceID);
             $json = $this->resourceService->getContent($resource);
-            $language = 'es';// $json['language'];
+            $language = $json['language'];
 
             $json_pages = [];
 

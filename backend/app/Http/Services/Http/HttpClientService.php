@@ -43,7 +43,6 @@ class HttpClientService
 
             return $data ?? [];
         } catch (RequestException $e) {
-            // Depuración: Mostrar el cuerpo de la respuesta si hay un error
             if ($e->hasResponse()) {
                 echo $e->getResponse()->getBody()->getContents();
             }

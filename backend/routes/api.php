@@ -33,22 +33,6 @@ Route::group(['prefix' => 'v1', 'as' => 'v.'], function() {
         return response()->json(['status' => 'OK']);
     })->name('api.v1.status_health');
 
-    // Route::group(['prefix' => 'auth'], function() {
-    //     Route::post('login',        [AuthController::class, 'login'])->name('v1.auth.login');
-    //     Route::post('signup',       [AuthController::class, 'signup'])->name('v1.auth.signup');
-    // });
-
-    Route::group(['prefix' => 'llm', 'middleware' => 'AuthMiddleware'], function() {
-        // Route::post('/{resource_id}/resume',    [LLMController::class, 'generateResume'])->name('llm.resource.generate_resume');
-        // Route::post('/{resource_id}/map',       [LLMController::class, 'generateMentalmap'])->name('llm.generate_mentalmap');
-        // Route::post('/{resource_id}/variant',   [LLMController::class, 'generateVariant'])->name('llm.generate_variant');
-
-
-        // Route::get('/{resource_id}/resume',    [LLMController::class, 'getResume'])->name('llm.resource.get_resume');
-        // Route::get('/{resource_id}/map',       [LLMController::class, 'getMentalmap'])->name('llm.get_mentalmap');
-        // Route::get('/{resource_id}/variant',   [LLMController::class, 'getVariant'])->name('llm.get_variant');
-
-    });
 
     Route::group(['prefix' => 'resources/{resouce_id}'], function() {
         Route::get('/',[ResourceController::class, 'show'])->name('resouce.show');
