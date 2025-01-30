@@ -14,7 +14,7 @@ class HttpClientService
     /**
      * Puedes inyectar configuración si lo deseas, como tiempo de espera, headers globales, etc.
      */
-    public function __construct(array $config = [])
+    public function __construct(array $config = ['timeout' => 300, 'connect_timeout' => 60])
     {
         $this->client = new Client($config);
     }

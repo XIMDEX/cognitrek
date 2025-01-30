@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Services\Ximdex\XDamService;
-use App\Models\Condition;
+use App\Jobs\LLMBatchProcessor;
 use App\Services\ConditionService;
 use App\Services\ResourceService;
 use Illuminate\Http\Request;
@@ -54,14 +54,14 @@ class VariantController extends Controller
             //     'content' => 'required|string',
             // ]);
             $resourceID = '9df6f257-4ad4-44a6-b3ca-6dc97216b8ca';
-    
+
             // $params = $this->xDamService->getResource($resourceID);
             $resource = $this->resourceService->getByXdamId($resourceID);
             $json = $this->resourceService->getContent($resource);
             $language = 'es';// $json['language'];
-    
+
             $json_pages = [];
-    
+
             foreach ($json['sections'] as $section) {
                 $page = ['page' => $section['page'], 'blocks' => []];
                 foreach ($section['blocks'] as $block) {
@@ -71,106 +71,81 @@ class VariantController extends Controller
                 }
                 $json_pages[] = $page;
             }
-    
+
             if (!$resource) {
                 throw new \Exception('Resource not found');
             }
-    
+
             $validated = [
                 'resource_id' => $resourceID,
                 'conditions' => [39, 57],
                 'label' => 'Demo variant dyslexia low + user',
                 'type' => 'content',
-                'user_data' => ''
+                'user_data' => []
             ];
-    
+
             if (count($validated['conditions']) === 0) {
                 throw new \Exception('Conditions not found');
             }
-    
+
             $conditions = $this->conditionService->getManyByIds($validated['conditions']);
-            $variants = $this->variantService->getAllByResourceLabel($resourceID, $validated['label']);
-    
-            if (count($variants) > 0) {
-                // Add adaptation to $json
-    
-            }
-    
+            $variants = $this->variantService->getAllByResourceLabel($resource->id, $validated['label']);
+
+            $any_processing = $variants->reject(function($v) {
+                return $v->proccessing_id;
+            });
+
+
             if ($conditions->count() !== count($validated['conditions'])) {
                 throw new \Exception('Condition not found');
             }
-    
-            $user_condition = $conditions->filter(function ($item) {
-                return $item->type === 'user';
-            })->first();
-    
-            $conditions = $conditions->reject(function ($item) {
-                return $item->type === 'user';
-            });
-    
-            if ($user_condition) {
-                $validated['conditions'] = array_filter($validated['conditions'], function($item) use ($user_condition) {
-                    return $item !== $user_condition->id;
-                });
-            }
 
-            if ($user_condition && $validated['user_data']) {
-                //* Process combination $content + user_data modification
-                $new_content = [];
-                
-                //* Create new variant
-                $this->variantService->create([
+            $user_condition = $conditions->filter(function ($item) {
+                return $item->type == 'User' || $item->type === 'user';
+            })->first();
+
+
+            if ($any_processing->count() == 0 && $user_condition && is_array($validated['user_data'])) {
+
+                $uservariant =$variant_user = $this->variantService->create([
                     'resource_id' => $resource->id,
                     'condition_id' => $user_condition->id,
-                    'content' => json_encode($new_content),
+                    'content' => json_encode($validated['user_data']),
                     'type' => 'content',
                     'label' => $validated['label'],
+                    'proccessing_id' => null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-            }
-    
-            foreach ($conditions as $condition) {
-                if (!$condition) {
-                    throw new \Exception('Condition not found');
+
+                if ($uservariant) {
+                    $conditions = $conditions->reject(function($c) use ($user_condition) {
+                        return $c->id == $user_condition->id;
+                    });
                 }
-    
-                $validated['conditions'] = array_filter($$validated['conditions'], function($item) use ($condition) {
-                    return $item !== $condition->id;
-                });
-    
-                $data = [
-                    'data' => [
-                        'prompt' => $condition->type,
-                        'resource' => $json_pages,
-                        'lang' => $language,
-                    ],
-                    'id' => $resourceID,
+            }
+
+            $variants = collect(isset($variant_user) ? [$variant_user] : []);
+
+            LLMBatchProcessor::dispatch('llm_service', [
+                'data' => [
                     'lang' => $language,
-                    'action' => 'adaptation'
-                ];
-    
-                $adaptation = $this->useService('llm_service', $data);
-    
-                $this->variantService->create([
-                    'resource_id' => $resource->id,
-                    'condition_id' => $condition->id,
-                    'content' => json_encode($adaptation['content']),
-                    'type' => 'content',
-                    'proccessing_id' => $adaptation['id'] ? $validated : $adaptation['content'],
-                    'label' => $validated['label'],
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-    
-                if ($adaptation['id']) {
-                    throw new \Exception('processing');
-                }
-            }
-    
-            $variant  = '';
-            // $variant = $this->variantService->create($validated);
-            return response()->json($variant, 201);
+                    'id' => $resource->id,
+                    'dam_id' => $resourceID,
+                    'action' => 'adaptation',
+                    'data' => [
+                        'prompt' => '',
+                        'resource' => [],
+                        'lang' => $language
+                        ]
+                    ],
+                'action' => 'adaptation',
+                'validated' => $validated,
+                'done' => $variants->pluck('id')->toArray(),
+                'todo' => $conditions->pluck('id')->toArray()
+            ])->onConnection('database');
+
+            return response(['status' => 'proccessing'], 201);
         } catch (\Exception $e) {
             if ($e->getMessage() == 'processing') {
                 return response()->json(['status' => 'processing'], Response::HTTP_ACCEPTED);
@@ -194,7 +169,7 @@ class VariantController extends Controller
         return response()->json($variant);
     }
 
-    public function getAllByResourceLabel(Request $request) 
+    public function getAllByResourceLabel(Request $request)
     {
 
     }

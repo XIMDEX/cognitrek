@@ -9,6 +9,12 @@ return [
         'llm_service' => \Modules\LlmModule\Services\LLMService::class,
     ],
 
+    'languages' => [
+        'es' => 'spanish (Spain)',
+        'en' => 'english',
+        'fr' => 'french'
+    ],
+
     'drivers' => [
         'OpenAI' => [
             'class' => \Modules\LlmModule\Services\Adapters\OpenAIAdapter::class,
@@ -67,5 +73,10 @@ return [
             'mid' => storage_path('Prompts/language_disorder/mid.txt'),
             'hight' => storage_path('Prompts/language_disorder/hight.txt')
         ],
+    ],
+    'actions' => [
+        'resume' => false,          // OpenAI | Anthropic | Llama | false
+        'coneptual_map' => false,   // OpenAI | Anthropic | Llama | false
+        'adaptation' => false      // OpenAI | Anthropic | Llama | false
     ]
 ];

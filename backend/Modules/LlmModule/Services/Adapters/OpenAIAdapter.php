@@ -6,13 +6,9 @@ use App\Http\Services\Http\HttpClientService;
 
 class OpenAIAdapter extends LLMBaseAdapter
 {
-    const STATUS_ERROR = [
-        2 => 'FAILED',
-        3 => 'TIMEOUT',
-        4 => 'FILE_NOT_FOUND',
-    ];
 
     const STATUS_FILE_UPLOAD_OK = 'processed';
+    const STATUS_OK = 'ok';
 
     protected $endpoints;
 
@@ -57,30 +53,57 @@ class OpenAIAdapter extends LLMBaseAdapter
 
     public function batch(array $data, $prompt = "###XIMDEX_CONTENT###" , array $options = []): array
     {
-        $filePath = $this->createJsonlFile($data, $prompt, $options);
-        $output = ['id' => false, 'content' => []];
+        $output = ['id' => false, 'content' => [], 'error' => false];
         $outputFileId = false;
-        $batchId = false;
+        $batchId = $options['batch_id'] ?? false;
+        $filePath = false;
 
+        $maxAttempts = 0;
+        $timeSleep = 0;
+
+        if (isset($options['maxAttempts'])) {
+            $maxAttempts = $options['maxAttempts'];
+        }
+        if (isset($options['timeSleep'])) {
+            $timeSleep = $options['timeSleep'];
+        }
         try {
-            $fileId = $this->uploadFile($filePath);
-            $batchId = $this->createBatch($fileId, $options);
-            $status = $outputFileId = $this->monitorBatch($batchId);
-            if (in_array($status, array_values(self::STATUS_ERROR))) {
+            if (!$batchId) {
+                $options_batch =  [
+                    'temperature' => $options['temperature'] ?? 1,
+                    'max_tokens' => $options['max_tokens'] ?? 10000,
+                    'top_p' => $options['top_p'] ?? 1,
+                    'frequency_penalty' => $options['frequency_penalty'] ?? 0,
+                    'presence_penalty' => $options['presence_penalty'] ?? 0,
+                ];
+                $filePath = $this->createJsonlFile($data, $prompt, array_merge($options, $options_batch));
+                $fileId = $this->uploadFile($filePath);
+                $batchId = $this->createBatch($fileId, $options);
+                $output['batch_id'] = $batchId;
                 $output['id'] = $batchId;
-                if ($status !== self::STATUS_ERROR[3]) {
+            }
+            $outputFileId = $this->monitorBatch($batchId, $maxAttempts, $timeSleep);
+            if (in_array($outputFileId, array_values(self::STATUS_ERROR))) {
+                $output['id'] = $batchId;
+                if ($outputFileId === self::STATUS_ERROR[1]) {
                     $this->deleteBatchAndFile($batchId);
                     $output['error'] = true;
                     $output['id'] = false;
+                } else {
+                    $output['maxAttempts'] = 5;
+                    $output['timeSleep'] = 60;
                 }
             } else {
                 $content = $this->downloadBatchResults($outputFileId);
-                if ($content === self::STATUS_ERROR[1]) {
+                if ($content['status'] === self::STATUS_ERROR[3]) {
                     $this->deleteBatchAndFile($batchId);
                     $output['id'] = false;
                     $output['error'] = true;
+                    $output['content'] = ['error' => 'Error processing step batch'];
                 }
-                $output['content'] = $content;
+                $output['id'] = false;
+                $output['error'] = false;
+                $output['content'] = $content['data'];
             }
             return $output;
         } catch (\Throwable $th) {
@@ -90,43 +113,14 @@ class OpenAIAdapter extends LLMBaseAdapter
                 $this->deleteFile($outputFileId);
             }
             $output['error'] = true;
+            $output['id'] = false;
+            $output['content'] = ['error' => 'Error processing batch'];
             return $output;
         } finally {
-            unlink($filePath);
+            if ($filePath) unlink($filePath);
         }
     }
 
-    private function createJsonlFile(array $data, $prompt, array $options): string
-    {
-        $tempFile = tempnam(sys_get_temp_dir(), 'batch_') . '.jsonl';
-        $fileHandle = fopen($tempFile, 'w');
-
-        foreach ($data as $item) {
-            $data_prompt = str_replace('###XIMDEX_CONTENT###', $item['content'], $prompt);
-            $requestBody = [
-                'custom_id' => "request_{$item['id']}",
-                'method' => 'POST',
-                'url' => $this->endpoints['chat'],
-                'body' => [
-                    'model' => $this->model,
-                    'messages' => [
-                        ['role' => 'system', 'content' => $data_prompt]
-                    ],
-                    'temperature' => $options['temperature'] ?? 1,
-                    'max_tokens' => $options['max_tokens'] ?? 10000,
-                    'top_p' => $options['top_p'] ?? 1,
-                    'frequency_penalty' => $options['frequency_penalty'] ?? 0,
-                    'presence_penalty' => $options['presence_penalty'] ?? 0,
-                ]
-            ];
-
-            fwrite($fileHandle, json_encode($requestBody) . "\n");
-        }
-
-        fclose($fileHandle);
-
-        return $tempFile;
-    }
 
     private function uploadFile(string $filePath): string
     {
@@ -175,10 +169,9 @@ class OpenAIAdapter extends LLMBaseAdapter
         return $response['id'];
     }
 
-    private function monitorBatch(string $batchId): string
+    private function monitorBatch(string $batchId, $maxAttempts = 0, $timeSleep = 0): string
     {
         $attempts = 0;
-        $maxAttempts = 10;
 
         do {
             $response = $this->httpClient->request('GET', $this->baseUrl . $this->endpoints['batches'] . '/' . $batchId, [
@@ -190,35 +183,65 @@ class OpenAIAdapter extends LLMBaseAdapter
             $status = $response['status'] ?? 'unknown';
 
             if ($status === 'completed') {
-                return $response['output_file_id'] ?? self::STATUS_ERROR[4];
+                return $response['output_file_id'] ?? self::STATUS_ERROR[3];
             }
 
-            if ($status === 'failed') {
-                return self::STATUS_ERROR[2];
+            if ($status !== 'in_progress' && $status !== 'validating') {
+                return self::STATUS_ERROR[1];
             }
 
             if (++$attempts >= $maxAttempts) {
-                return self::STATUS_ERROR[3];
+                return self::STATUS_ERROR[2];
             }
 
-            sleep(10);
+            sleep($timeSleep);
         } while (true);
     }
 
-    private function downloadBatchResults(string $outputFileId): array
+    private function downloadBatchResults(string $outputFileId)
     {
-        $response = $this->httpClient->request('GET', $this->baseUrl . $this->endpoints['files'] . '/' . $outputFileId . '/content', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->apiKey,
-            ],
-        ]);
-
-        if (empty($response)) {
-            return self::STATUS_ERROR[1];
+        try {
+            $response = $this->httpClient->request('GET', $this->baseUrl . $this->endpoints['files'] . '/' . $outputFileId . '/content', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                ],
+            ], false);
+    
+            $response = $response->getBody()->getContents();
+            $response = array_map('json_decode', explode("\n", trim($response)));
+    
+            
+            if (empty($response)) {
+                return self::STATUS_ERROR[1];
+            }
+            
+            $data = $this->decodeResponseBatch($response);
+            return ['data' => $data, 'status' => self::STATUS_OK];
+        } catch (\Throwable $th) {
+            return ['data' => [], 'status' => self::STATUS_ERROR[3]];
         }
+    }
 
-        $decoded = $response;
-        return $decoded;
+    private function decodeResponseBatch($lines)
+    {
+        foreach ($lines as $line) {
+            if ($line->error != null) {
+                $output[] = [];
+            }
+            $id = $line->custom_id;
+            if (str_starts_with($id, "request_")) $id = str_replace('request_', '', $id);
+            $id = intval($id);
+            $data = $line->response->body->choices[0]->message->content;
+            
+            if (str_starts_with($data, "```json")) {
+                $data = substr($data, 7);
+            }
+            if (str_ends_with($data, "```")) {
+                $data = substr($data, 0, -3);
+            }
+            $output[$id] = json_decode($data, true) ?? [];
+        }
+        return $output;
     }
 
     public function checkBatchStatus(string $batchId): string
@@ -245,7 +268,7 @@ class OpenAIAdapter extends LLMBaseAdapter
     public function deleteBatch($batchId) 
     {
         
-        $response = $this->httpClient->request('DELETE', $this->baseUrl . $this->endpoints['batches'] . '/' . $batchId, [
+        $response = $this->httpClient->request('POST', $this->baseUrl . $this->endpoints['batches'] . '/' . $batchId . '/cancel', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiKey,
             ],
@@ -266,7 +289,9 @@ class OpenAIAdapter extends LLMBaseAdapter
             if ($file_id) {
                 $this->deleteFile($file_id);
             }
-            $this->deleteBatch($batchId);
+            if ($batch !== self::STATUS_ERROR[1]) {
+                $this->deleteBatch($batchId);
+            }
             return true;
         } catch(\Throwable $th) {
             throw new \Exception('Failed to delete batch and file with ID: ' . $batchId);
