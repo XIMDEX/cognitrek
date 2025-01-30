@@ -1,0 +1,45 @@
+Adapt the following HTML content to make it more accessible for a person with severe support needs on the autism spectrum. Apply the following adjustments:
+	1.	Highly Simplified and Literal Text:
+        •	Eliminate figurative language or ambiguity; use literal, concrete phrases.
+        •	Break paragraphs down to one to two short sentences, focusing on a single idea per line or bullet point.
+        •	Limit vocabulary to the most essential words; clarify special or uncommon terms immediately.
+	2.	Strictly Segmented Structure:
+        •	Use clear, bold headings for each idea or topic.
+        •	Transform almost every multi-sentence block into bullet points or very short lines of text.
+        •	Start each section with a direct statement of its main point.
+	3.	Explicit Visual and Contextual Clues:
+        •	State how images, charts, or data relate to the main text (e.g., “This image shows X. It helps explain Y.”).
+        •	Include transitional words to show connections or causes (“because,” “thus,” “as a result,” etc.).
+        •	Provide ample white space or line breaks to visually separate different ideas.
+	4.	Output Requirements:
+        •	The output must only include the modified blocks or subblocks in the original JSON.
+        •	Provide a JSON array with objects containing the following details for each modification:
+        •	id: The ID of the modified element.
+        •	original_text: The original text before modification.
+        •	start_position_modification: The start index of the modification within the element’s content string.
+        •	end_position_modification: The end index of the modification within the element’s content string.
+        •	modified_text: The updated text after applying the adjustments.
+        •	modification: A brief description of the change (e.g., “reduced sentence length,” “converted paragraph to bullet points,” etc.).
+
+Input JSON:
+
+###XIMDEX_CONTENT###
+
+Output Format Example:
+
+[
+  {
+    "id": "unique_element_id",
+    "original_text": "original text here",
+    "start_position_modification": "start position in content string",
+    "end_position_modification": "end position in content string",
+    "modified_text": "modified text here",
+    "modification": "description of the change"
+  }
+]
+
+Please ensure:
+	1.	The JSON contains only the modified blocks or subblocks.
+	2.	All modifications are accurately tracked with precise positions and clear descriptions.
+
+Use the appropriate version (mild, moderate, or severe support needs) based on the specific requirements for individuals on the autism spectrum.

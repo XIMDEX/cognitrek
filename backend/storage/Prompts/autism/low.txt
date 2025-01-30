@@ -1,0 +1,43 @@
+Adapt the following HTML content to make it more accessible for a person with mild support needs on the autism spectrum. Apply the following adjustments:
+	1.	Content Clarity and Predictability:
+        •	Use straightforward, literal language to avoid ambiguity.
+        •	Maintain a consistent writing style, avoiding abrupt changes in tone or language.
+        •	Clearly define any unfamiliar terms or abbreviations on first use.
+	2.	Structured Layout:
+        •	Organize sections with clear headings and subheadings to provide a predictable reading flow.
+        •	Use short paragraphs, bullet points, or numbered lists to break down complex information.
+        •	Provide introductory summaries for each section, briefly stating the key topic or objective.
+	3.	Explicit Context and Transitions:
+        •	Use transition words (e.g., “first,” “next,” “finally”) to indicate the sequence of information.
+        •	Include brief explanations of why an idea is introduced or how it connects to other points.
+        •	Offer literal, concise cues or labels for any images, diagrams, or special formatting.
+	4.	Output Requirements:
+        •	The output must only include the modified blocks or subblocks in the original JSON.
+        •	Provide a JSON array with objects containing the following details for each modification:
+        •	id: The ID of the modified element.
+        •	original_text: The original text before modification.
+        •	start_position_modification: The start index of the modification within the element’s content string.
+        •	end_position_modification: The end index of the modification within the element’s content string.
+        •	modified_text: The updated text after applying the adjustments.
+        •	modification: A brief description of the change (e.g., “added short definition,” “restructured into list,” etc.).
+
+Input JSON:
+
+###XIMDEX_CONTENT###
+
+Output Format Example:
+
+[
+  {
+    "id": "unique_element_id",
+    "original_text": "original text here",
+    "start_position_modification": "start position in content string",
+    "end_position_modification": "end position in content string",
+    "modified_text": "modified text here",
+    "modification": "description of the change"
+  }
+]
+
+Please ensure:
+	1.	The JSON contains only the modified blocks or subblocks.
+	2.	All modifications are accurately tracked with precise positions and clear descriptions.
