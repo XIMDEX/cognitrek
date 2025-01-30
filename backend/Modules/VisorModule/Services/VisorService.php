@@ -8,13 +8,13 @@ class VisorService
     {
     }
 
-    public function visor($resource, $modified)
+    public function visor($resource, $variants, $conditions, $edit)
     {
         try {
             
             $data = [
                 'resource' => $resource,
-                'dyslexic_level' => 'low',
+                'dyslexic_level' => false,
                 'tda_level' => false,
                 'lang' => $resource['lang'],
                 'modified' => [
@@ -23,7 +23,10 @@ class VisorService
                 ],
                 'modified_ids' => [149],
                 'deleted_ids' => [211],
-                'added_ids' => [223]
+                'added_ids' => [223],
+                'is_edit' => $edit,
+                'adaptations' => $variants,
+                'conditions' => $conditions
             ];
 
             return response()->view('visor::visor', $data);
