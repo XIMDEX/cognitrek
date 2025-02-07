@@ -52,8 +52,7 @@ Route::group(['prefix' => 'v1', 'as' => 'v.'], function() {
 
 
     Route::group(['prefix' => 'variants'], function() {
-        //! change index in GET
-        Route::get('/', [VariantController::class, 'store'])->name('variant.list');
+        Route::get('/', [VariantController::class, 'index'])->name('variant.list');
         Route::get('/{variant_id}', [VariantController::class, 'show'])->name('variant.show');
         Route::post('/', [VariantController::class, 'store'])->name('variant.store');
         Route::put('/{variant_id}', [VariantController::class, 'update'])->name('variant.update');
