@@ -1,20 +1,14 @@
-import Avatar from "./Avatar";
+import { XNav, XNavProps } from "@ximdex/xui-react/dist";
 
-export default function Navbar() {
+function Navbar({logo, className, items, styles}: XNavProps ){
     return (
-        <header className="border-b text-white px-4 py-3 flex justify-between items-center h-[100px] bg-primary">
-            <div className="flex items-center gap-4">
-            <img 
-                src="logotipo_ximdex-white-small.png" 
-                alt="Logo Cognitrek" 
-                className="w-56"
-            />
-            </div>
-            
-            <div className="flex items-center gap-2">
-            
-            <Avatar image="" user="Fran E" email="fenriqez@ximdex.com" size="sm"/>
-            </div>
-        </header>
+        <XNav
+            logo={logo}
+            className={className}
+            items={items} 
+            styles={styles}
+        />
     )
 }
+
+export default Navbar

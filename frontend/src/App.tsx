@@ -14,6 +14,7 @@ import BasicLayout from "./components/layouts/BasicLayout";
 import GroupsPage from "./pages/Groups";
 import ServicesPage from "./pages/Services";
 import AdminPanelPage from "./pages/AdminPanel";
+import VisorPage from "./pages/Visor";
 
 const routesFromElements = createRoutesFromElements(
   <>
@@ -32,6 +33,11 @@ const routesFromElements = createRoutesFromElements(
       <Route
         path="/services"
         element={<ServicesPage />}
+        errorElement={<ErrorBoundary />}
+      />
+      <Route
+        path="/visor"
+        element={<VisorPage />}
         errorElement={<ErrorBoundary />}
       />
     </Route>

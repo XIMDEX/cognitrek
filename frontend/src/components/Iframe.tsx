@@ -5,7 +5,7 @@ interface IframeProps {
   style?: React.CSSProperties;
   className?: string;
   message?: { type: string; content: string; id: number};
-  requestMessage?: (message: string, data: unknown) => void;
+  requestMessage?: (message: string, data: string) => void;
 }
 
 export default function Iframe({
