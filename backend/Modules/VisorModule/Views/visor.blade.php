@@ -40,6 +40,8 @@
             @include('visor::styles.language_disorder')
         @endif
 
+        {!! $edit_mode !!}
+        {!! $user_condition !!}
     </head>
     <body class="antialiased">
 
@@ -68,18 +70,6 @@
     
     <!-- JS -->
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
-
-    <script>
-        if (window.self !== window.top) {
-            $back_list = document.getElementById('back-list');
-            $back_list.classList.remove('hidden');
-            $back_list_button = document.querySelector('#back-list button');
-            $back_list_button.addEventListener('click', function() {
-                window.parent.postMessage({type: 'cognitrek', content: 'list', data: {}}, '*');
-            });
-        }
-
-    </script>
 
     {!! $blocks_modified !!} 
 

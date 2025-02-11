@@ -76,7 +76,7 @@ class OpenAIAdapter extends LLMBaseAdapter
                     'frequency_penalty' => $options['frequency_penalty'] ?? 0,
                     'presence_penalty' => $options['presence_penalty'] ?? 0,
                 ];
-                $filePath = $this->createJsonlFile($data, $prompt, array_merge($options, $options_batch));
+                $filePath = $this->createJsonlFile($data, $prompt, $options_batch);
                 $fileId = $this->uploadFile($filePath);
                 $batchId = $this->createBatch($fileId, $options);
                 $output['batch_id'] = $batchId;

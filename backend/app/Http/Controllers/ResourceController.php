@@ -33,8 +33,12 @@ class ResourceController extends Controller
         Storage::makeDirectory("public/".$resourceID);
         $params = $this->xDamService->getResource($resourceID);
         try {
-            $this->useService('conversion_service', $params);
+            $validated['resume'] = storage_path("app/public/$resourceID/resume.txt");
+            $validated['conceptual_map'] = storage_path("app/public/$resourceID/conceptual_map.md");
             $validated['content'] = storage_path("app/public/$resourceID/raw.json");
+            
+            $resource = $this->resourceService->create($validated);
+            $this->useService('conversion_service', $params);
 
             $json = file_get_contents($validated['content']);
             $json = json_decode($json, true);
@@ -50,10 +54,7 @@ class ResourceController extends Controller
 
             $this->useService('llm_service', $data);
 
-            $validated['resume'] = storage_path("app/public/$resourceID/resume.txt");
-            $validated['conceptual_map'] = storage_path("app/public/$resourceID/conceptual_map.md");
 
-            $resource = $this->resourceService->create($validated);
             return response()->json($resource, 201);
 
         } catch (\Exception $exc) {

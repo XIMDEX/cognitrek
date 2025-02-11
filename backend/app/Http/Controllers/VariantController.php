@@ -43,7 +43,7 @@ class VariantController extends Controller
         return response()->json($variants);
     }
 
-    public function store(Request $request, $resourceID)
+    public function store(Request $request)
     {
         try {
 
@@ -51,10 +51,11 @@ class VariantController extends Controller
                 'resource_id' => 'string',
                 'conditions' => 'required|array',
                 'content' => 'required|string',
-                'user_data' => 'array'
+                'user_data' => 'array',
+                'label' => 'required|string'
             ]);
 
-            $resourceID = $validated['resource_id'] ?? $resourceID;
+            $resourceID = $validated['resource_id'];
 
             $resource = $this->resourceService->getByXdamId($resourceID);
             $json = $this->resourceService->getContent($resource);
@@ -75,14 +76,6 @@ class VariantController extends Controller
             if (!$resource) {
                 throw new \Exception('Resource not found');
             }
-
-            $validated = [
-                'resource_id' => $resourceID,
-                'conditions' => [39, 57],
-                'label' => 'Demo variant dyslexia low + user',
-                'type' => 'content',
-                'user_data' => []
-            ];
 
             if (count($validated['conditions']) === 0) {
                 throw new \Exception('Conditions not found');

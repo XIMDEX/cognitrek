@@ -8,7 +8,7 @@ class VisorService
     {
     }
 
-    public function visor($resource, $variants, $conditions, $edit)
+    public function visor($resource, $variants, $conditions, $edit, $edit_mode, $json=false)
     {
         try {
 
@@ -22,13 +22,17 @@ class VisorService
                 }
             }
             $body_class = '';
+            $user_condition = -1;
 
             foreach ($conditions as $c)  {
                 if ($c['selected']) {
                     $name = str_replace('.', '-', $c['type']);
                     $body_class .= " $name";
                 }
+                if (strtolower($c['type']) == 'user') $user_condition = $c['id'];
             }
+
+            
 
             $data = [
                 'resource' => $resource,
@@ -39,9 +43,16 @@ class VisorService
                 'adaptations' => $variants,
                 'conditions' => $conditions,
                 'blocks_modified' => '<script>var blocks_modified = ' . json_encode($modified_blocks) . '; </script>',
-                'body_class' => $body_class
+                'body_class' => $body_class,
+                'edit_mode' => '<script>var edit_mode = ' . ($edit_mode ? 'true' : 'false') . '; </script>',
+                'mode' => $edit_mode ? 'edit' : 'read',
+                'user_condition' => '<script> var user_condition = "' . $user_condition . '";</script>'
             ];
 
+            if ($json) {
+                $data['blocks_modified'] = $modified_blocks;
+                return response()->json($data);
+            }
             return response()->view('visor::visor', $data);
 
         } catch (\Exception $e) {
@@ -53,7 +64,7 @@ class VisorService
     public function preview($resource, $modified)
     {
         try {
-            
+
             $data = [
                 'resource' => $resource,
                 'dyslexic_level' => 'low',

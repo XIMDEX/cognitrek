@@ -125,13 +125,12 @@ class LLMBatchProcessor implements ShouldQueue
             foreach ($done as $variant) {
                 if ($variant->proccessing_id) continue;
                 $content = json_decode($variant->content);
-                
-                $data = $this->variantService->adaptHTML($data, $content);
+                $condition_label = $this->conditionService->getById($variant->condition_id);
+                $data = $this->variantService->adaptHTML($data, $content, $condition_label, $variant->condition_id);
             }
 
             foreach ($doing as $item) {
                 $content = json_decode($item->content, true);
-                $is_internal = $content['batch'] == 'internal';
                 if (count($content) == 0) {
                     $content = array_merge($data_params, ['opts' => $data_params]);
                     $content['data']['resource'] = $data;

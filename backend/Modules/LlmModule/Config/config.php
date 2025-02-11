@@ -76,7 +76,7 @@ return [
     ],
     'actions' => [
         'resume' => false,          // OpenAI | Anthropic | Llama | false
-        'coneptual_map' => false,   // OpenAI | Anthropic | Llama | false
+        'conceptual_map' => false,   // OpenAI | Anthropic | Llama | false
         'adaptation' => false      // OpenAI | Anthropic | Llama | false
     ]
 ];
