@@ -18,17 +18,19 @@
         editable_class: 'editcontent',
         contextmenu: 'cut copy paste autolink link image',
         plugins: 'advlist autolink link image lists media table charmap codesample',
-        toolbar: [`undo redo bold italic forecolor backcolor fontsizeselect alignleft aligncenter alignright alignjustify bullist numlist outdent indent removeformat link list table charmap `],
+        toolbar: [
+            `undo redo | bold italic forecolor backcolor fontsizeselect fontfamily | alignrigth alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat link list table charmap `],
         fontsize_formats: "8pt 10pt 12pt 14pt 18pt",
         font_formats: "Andale Mono=andale mono,times; Arial=arial,helvetica,sans-serif; Arial Black=arial black,avant garde; Book Antiqua=book antiqua,palatino; Comic Sans MS=comic sans ms,sans-serif; Courier New=courier new,courier; Cursive=cursive; Georgia=georgia,palatino; Helvetica=helvetica; Impact=impact,chicago; Symbol=symbol; Tahoma=tahoma,arial,helvetica,sans-serif; Terminal=terminal,monaco; Times New Roman=times new roman,times; Trebuchet MS=trebuchet ms,geneva; Verdana=verdana,geneva;",
         statusbar: false,
+        menubar: false,
         disabled: !edit_mode,
         htmlAllowedTags:  ['.*'],
         htmlAllowedAttrs: ['.*'],
         extended_valid_elements: '*[.*]',
         init_instance_callback: function (editor) {
-            var promotion = document.querySelector('div.tox-promotion')
-            promotion.style.display = 'none';
+            // var promotion = document.querySelector('div.tox-promotion')
+            // promotion.style.display = 'none';
             handleEditMode(editor, edit_mode)
             // toggleEditMode(false)
 

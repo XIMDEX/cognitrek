@@ -42,7 +42,7 @@
         } else {
             editor.setEditableRoot(false);
             editor.getContainer().querySelector('.tox-toolbar').style.display = 'none'; 
-            editor.getContainer().querySelector('.tox-menubar').style.display = 'none'; 
+            // editor.getContainer().querySelector('.tox-menubar').style.display = 'none'; 
             setTimeout(() => editor.dom.select('.xmodified').forEach(el => el.classList.add('view')), 100)
         }
     }
@@ -53,7 +53,7 @@
         $switch_edit_mode = document.querySelector('#editModeToggle')
         if (!edit_mode) {
             editor.getContainer().querySelector('.tox-toolbar').style.display = 'none'; 
-            editor.getContainer().querySelector('.tox-menubar').style.display = 'none'; 
+            // editor.getContainer().querySelector('.tox-menubar').style.display = 'none'; 
             $switch_edit_mode.checked = false
         } else {
             $switch_edit_mode.checked = true

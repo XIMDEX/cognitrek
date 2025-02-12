@@ -114,7 +114,7 @@ class VariantService
         if (!$jsonAdaptation) return $jsonHTML;
         
         foreach ($jsonHTML as $idx => $section) {
-            $output[] = $this->parseSection($section, $jsonAdaptation[$idx], $condition_label, $condition_id);
+            $output[] = $this->parseSection($section, $jsonAdaptation[$section['page']], $condition_label, $condition_id);
         }
 
         return $output;

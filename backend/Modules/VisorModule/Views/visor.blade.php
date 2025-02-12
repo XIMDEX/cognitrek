@@ -46,8 +46,14 @@
     <body class="antialiased">
 
         <main class="flex-1 flex flex-col overflow-y-hidden main-content">
-
-            <input type="file" id="imageUpload" class="image-upload" accept="image/*">
+            <div class="bg-primary text-white font-sans font-bold p-4 flex flex-row justify-between">
+                {{ strtoupper($resource['title']) }}
+                <div class="pagination flex flex-row gap-2">
+                    @include('visor::icons.previous', ['width' => 24, 'height' => 24])
+                    01&nbsp;/&nbsp;20
+                    @include('visor::icons.next', ['width' => 24, 'height' => 24])
+                </div>
+            </div>
             
             @php
                 ob_start();
