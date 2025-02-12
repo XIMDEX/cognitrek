@@ -15,6 +15,7 @@ import GroupsPage from "./pages/Groups";
 import ServicesPage from "./pages/Services";
 import AdminPanelPage from "./pages/AdminPanel";
 import VisorPage from "./pages/Visor";
+import TraceLLM from "./pages/TraceLLM";
 
 const routesFromElements = createRoutesFromElements(
   <>
@@ -37,7 +38,7 @@ const routesFromElements = createRoutesFromElements(
       />
       <Route
         path="/visor"
-        element={<VisorPage />}
+        element={<TraceLLM id={'232'} />}
         errorElement={<ErrorBoundary />}
       />
     </Route>

@@ -64,7 +64,7 @@ const Resources = () => {
           />
         </div>
       )}
-      {type == 'visor' && ( <Visor /> )}
+      {type == 'visor' && ( <Visor resourceId={resourceId}  /> )}
       {type == 'editor' && ( <Editor resourceId={resourceId} /> )}
     </div>
   );

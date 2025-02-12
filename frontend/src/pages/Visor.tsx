@@ -10,18 +10,15 @@ const VISOR_TYPE = {
     MARKMAP: 'conceptual_map'
 }
 
-const demo = "9e196695-825b-4265-8ecb-b0073146f7f4"
-
-export default function Visor() {
-    const [type, setType] = useState(VISOR_TYPE.MARKMAP)
+export default function Visor({resourceId}) {
+    const [type, setType] = useState(VISOR_TYPE.SUMMARY)
     const [value, setValues] = useState({[VISOR_TYPE.CONTENT]: false, [VISOR_TYPE.SUMMARY]: false, [VISOR_TYPE.MARKMAP]: false})
 
     useEffect(() => {
         if (!value[type]) {
-            fetch(COGNITREK_BACKEND_URL + '/resources/' + demo + '/' + type)
+            fetch(COGNITREK_BACKEND_URL + '/resources/' + resourceId + '/' + type)
                 .then(e => e.json())
                 .then(e => {
-                    console.log(e)
                     setValues({...value, [type]: e[type] })
                 })
         }
@@ -30,6 +27,7 @@ export default function Visor() {
 
     return (
         <div className="flex flex-row h-full">
+            <div>Demo</div>
             <div className="grow">
                 {!value[type] && (
                     <p>Loading...</p>
@@ -44,8 +42,7 @@ export default function Visor() {
                     <VisorContent content={""} />
                 )}
             </div>
-            <div className="w-[400px] bg-secondary">
-ds
+            <div className="w-[400px] bg-secondary" style={{minWidth: 400}}>
             </div>
         </div>
     )
