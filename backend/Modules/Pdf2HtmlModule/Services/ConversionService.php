@@ -57,8 +57,8 @@ class ConversionService
                 'error' => $e->getMessage(),
                 'output' => $process->getErrorOutput(),
             ];
+
         }
-        return 'Action performed by Pdf2HtmlModule service';
     }
 
     protected function setupVirtualEnv()

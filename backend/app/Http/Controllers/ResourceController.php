@@ -36,9 +36,13 @@ class ResourceController extends Controller
             $validated['resume'] = storage_path("app/public/$resourceID/resume.txt");
             $validated['conceptual_map'] = storage_path("app/public/$resourceID/conceptual_map.md");
             $validated['content'] = storage_path("app/public/$resourceID/raw.json");
-            
+
             $resource = $this->resourceService->create($validated);
-            $this->useService('conversion_service', $params);
+            $output = $this->useService('conversion_service', $params);
+
+            if (!$output['success']) {
+                throw new \Error(print_r($output));
+            }
 
             $json = file_get_contents($validated['content']);
             $json = json_decode($json, true);
@@ -118,7 +122,7 @@ class ResourceController extends Controller
         if (!$resource) {
             return response()->json(['error' => 'Resource not found'], 404);
         }
-        
+
         $conceptual_map = $this->resourceService->getConceptualMap($resource);
         return response()->json(['conceptual_map' => $conceptual_map]);
     }
