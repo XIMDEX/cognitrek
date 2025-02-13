@@ -13,7 +13,10 @@ const VISOR_TYPE = {
 export default function Visor({resourceId}) {
     const [type, setType] = useState(VISOR_TYPE.SUMMARY)
     const [value, setValues] = useState({[VISOR_TYPE.CONTENT]: false, [VISOR_TYPE.SUMMARY]: false, [VISOR_TYPE.MARKMAP]: false})
-
+    
+    //!! to delete when usee it
+    console.log(setType)
+    
     useEffect(() => {
         if (!value[type]) {
             fetch(COGNITREK_BACKEND_URL + '/resources/' + resourceId + '/' + type)
@@ -23,7 +26,7 @@ export default function Visor({resourceId}) {
                 })
         }
 
-    }, [value, type])
+    }, [value, type, resourceId])
 
     return (
         <div className="flex flex-row h-full">

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   Route,
   createBrowserRouter,
@@ -5,49 +6,84 @@ import {
   RouterProvider,
 } from "react-router-dom";
 
-import HomePage from "./pages/Home";
-import ResourcePage from "./pages/Resources";
-
 import ErrorBoundary from "./components/ErrorBoundary";
 import NavbarSidebarLayout from "./components/layouts/NavbarSidebarLayout";
 import BasicLayout from "./components/layouts/BasicLayout";
-import GroupsPage from "./pages/Groups";
-import ServicesPage from "./pages/Services";
-import AdminPanelPage from "./pages/AdminPanel";
-import VisorPage from "./pages/Visor";
-import TraceLLM from "./pages/TraceLLM";
+
+const HomePage = lazy(() => import("./pages/Home"));
+const ResourcePage = lazy(() => import("./pages/Resources"));
+const GroupsPage = lazy(() => import("./pages/Groups"));
+const ServicesPage = lazy(() => import("./pages/Services"));
+const AdminPanelPage = lazy(() => import("./pages/AdminPanel"));
+const TraceLLM = lazy(() => import("./pages/TraceLLM"));
+
+const Loader = () => <div>Cargando...</div>;
 
 const routesFromElements = createRoutesFromElements(
   <>
     <Route element={<NavbarSidebarLayout />}>
-      <Route index element={<HomePage />} />
+      <Route
+        index
+        element={
+          <Suspense fallback={<Loader />}>
+            <HomePage />
+          </Suspense>
+        }
+      />
       <Route
         path="/resources"
-        element={<ResourcePage />}
+        element={
+          <Suspense fallback={<Loader />}>
+            <ResourcePage />
+          </Suspense>
+        }
         errorElement={<ErrorBoundary />}
       />
       <Route
         path="/groups"
-        element={<GroupsPage />}
+        element={
+          <Suspense fallback={<Loader />}>
+            <GroupsPage />
+          </Suspense>
+        }
         errorElement={<ErrorBoundary />}
       />
       <Route
         path="/services"
-        element={<ServicesPage />}
+        element={
+          <Suspense fallback={<Loader />}>
+            <ServicesPage />
+          </Suspense>
+        }
         errorElement={<ErrorBoundary />}
       />
       <Route
         path="/visor"
-        element={<TraceLLM id={'232'} />}
+        element={
+          <Suspense fallback={<Loader />}>
+            <TraceLLM id={"232"} />
+          </Suspense>
+        }
         errorElement={<ErrorBoundary />}
       />
     </Route>
 
     <Route element={<BasicLayout />}>
-      <Route index element={<HomePage />} />
+      <Route
+        index
+        element={
+          <Suspense fallback={<Loader />}>
+            <HomePage />
+          </Suspense>
+        }
+      />
       <Route
         path="/admin-panel"
-        element={<AdminPanelPage />}
+        element={
+          <Suspense fallback={<Loader />}>
+            <AdminPanelPage />
+          </Suspense>
+        }
         errorElement={<ErrorBoundary />}
       />
     </Route>

@@ -6,7 +6,7 @@ export default function XEditor({ data = "" }) {
 
     const editorRef = useRef(null);
 
-    const handleOnInit = (evt, editor) => {
+    const handleOnInit = (_, editor) => {
         editorRef.current = editor
     }
     

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Markmap } from 'markmap-view';
 import { Toolbar } from 'markmap-toolbar';
 import 'markmap-toolbar/dist/style.css';
@@ -34,16 +34,17 @@ function renderToolbar(mm: Markmap, wrapper: HTMLElement) {
 
 export default function MarkMap({markmap}: {markmap: string}) {
   const [value] = useState(markmap);
-  const refSvg = useRef<SVGSVGElement>();
-  const refMm = useRef<Markmap>();
-  const refToolbar = useRef<HTMLDivElement>();
+  const refSvg = useRef<SVGSVGElement>(null);
+  const refMm = useRef<Markmap | null>(null);
+  const refToolbar = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (refMm.current) return;
-    const mm = Markmap.create(refSvg.current);
-    refMm.current = mm;
-    renderToolbar(refMm.current, refToolbar.current);
-  }, [refSvg.current]);
+    if (refSvg.current && refMm.current && refToolbar.current) {
+      const mm = Markmap.create(refSvg.current);
+      refMm.current = mm;
+      renderToolbar(refMm.current, refToolbar.current);
+    }
+  }, []);
 
   useEffect(() => {
     const mm = refMm.current;
@@ -51,7 +52,7 @@ export default function MarkMap({markmap}: {markmap: string}) {
     const { root } = transformer.transform(value);
     mm.setData(root);
     mm.fit();
-  }, [refMm.current, value]);
+  }, [value]);
 
 
   return (
