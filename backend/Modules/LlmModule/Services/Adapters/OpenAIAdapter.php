@@ -20,7 +20,7 @@ class OpenAIAdapter extends LLMBaseAdapter
             'files' => config('llmmodule.drivers.OpenAI.endpoints.files'),
             'batches' => config('llmmodule.drivers.OpenAI.endpoints.batches'),
         ];
-        
+
     }
 
     public function call($prompt, array $options = [], $path=null): string
@@ -171,31 +171,23 @@ class OpenAIAdapter extends LLMBaseAdapter
 
     private function monitorBatch(string $batchId, $maxAttempts = 0, $timeSleep = 0): string
     {
-        $attempts = 0;
+        $response = $this->httpClient->request('GET', $this->baseUrl . $this->endpoints['batches'] . '/' . $batchId, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->apiKey,
+            ],
+        ]);
 
-        do {
-            $response = $this->httpClient->request('GET', $this->baseUrl . $this->endpoints['batches'] . '/' . $batchId, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->apiKey,
-                ],
-            ]);
+        $status = $response['status'] ?? 'unknown';
 
-            $status = $response['status'] ?? 'unknown';
+        if ($status === 'completed') {
+            return $response['output_file_id'] ?? self::STATUS_ERROR[3];
+        }
 
-            if ($status === 'completed') {
-                return $response['output_file_id'] ?? self::STATUS_ERROR[3];
-            }
+        if ($status !== 'in_progress' && $status !== 'validating') {
+            return self::STATUS_ERROR[1];
+        }
 
-            if ($status !== 'in_progress' && $status !== 'validating') {
-                return self::STATUS_ERROR[1];
-            }
-
-            if (++$attempts >= $maxAttempts) {
-                return self::STATUS_ERROR[2];
-            }
-
-            sleep($timeSleep);
-        } while (true);
+        return self::STATUS_ERROR[2];
     }
 
     private function downloadBatchResults(string $outputFileId)
@@ -206,15 +198,15 @@ class OpenAIAdapter extends LLMBaseAdapter
                     'Authorization' => 'Bearer ' . $this->apiKey,
                 ],
             ], false);
-    
+
             $response = $response->getBody()->getContents();
             $response = array_map('json_decode', explode("\n", trim($response)));
-    
-            
+
+
             if (empty($response)) {
                 return self::STATUS_ERROR[1];
             }
-            
+
             $data = $this->decodeResponseBatch($response);
             return ['data' => $data, 'status' => self::STATUS_OK];
         } catch (\Throwable $th) {
@@ -232,7 +224,7 @@ class OpenAIAdapter extends LLMBaseAdapter
             if (str_starts_with($id, "request_")) $id = str_replace('request_', '', $id);
             $id = intval($id);
             $data = $line->response->body->choices[0]->message->content;
-            
+
             if (str_starts_with($data, "```json")) {
                 $data = substr($data, 7);
             }
@@ -265,9 +257,9 @@ class OpenAIAdapter extends LLMBaseAdapter
         throw new \Exception('Failed to delete file with ID: ' . $fileId);
     }
 
-    public function deleteBatch($batchId) 
+    public function deleteBatch($batchId)
     {
-        
+
         $response = $this->httpClient->request('POST', $this->baseUrl . $this->endpoints['batches'] . '/' . $batchId . '/cancel', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiKey,

@@ -19,7 +19,7 @@ use Modules\LlmModule\Services\LLMService;
 class LLMBatchProcessor implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    
+
     /**
      * Parameters for adaptation generation.
      *
@@ -57,7 +57,7 @@ class LLMBatchProcessor implements ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @param  string  $serviceAlias 
+     * @param  string  $serviceAlias
      * @param  array   $params
      */
     public function __construct($serviceAlias, array $params)
@@ -86,7 +86,7 @@ class LLMBatchProcessor implements ShouldQueue
             $validated = $this->params['validated'];
 
             $done = $this->variantService->getAllByResourceLabel($resourceID, $validated['label']);
-         
+
             $doing = $done->reject(function($item) {
                 return !$item->proccessing_id;
             });
@@ -110,7 +110,7 @@ class LLMBatchProcessor implements ShouldQueue
 
             $data = Storage::json('public/'.$damID.'/raw.json');
             $json_pages = [];
-    
+
             foreach ($data['sections'] as $section) {
                 $page = ['page' => $section['page'], 'blocks' => []];
                 foreach ($section['blocks'] as $block) {
@@ -145,7 +145,7 @@ class LLMBatchProcessor implements ShouldQueue
                     $content['opts']['timeSleep'] = 60;
                     $content['data']['id'] = $item->proccessing_id;
                 }
-                $output = $this->useService($this->serviceAlias, $content);     
+                $output = $this->useService($this->serviceAlias, $content);
                 if ($output['id'] && !$output['error']) {
                     $this->variantService->update([
                         'proccessing_id' => $output['batch_id'] ?? $output['id'],
@@ -224,7 +224,7 @@ class LLMBatchProcessor implements ShouldQueue
     }
 
     /**
-     * Define a retry time limit 
+     * Define a retry time limit
      */
     public function retryUntil()
     {
@@ -236,7 +236,7 @@ class LLMBatchProcessor implements ShouldQueue
      */
     public function backoff()
     {
-        return 60;
+        return 1800;
     }
 
     private function getService($alias)
@@ -255,7 +255,7 @@ class LLMBatchProcessor implements ShouldQueue
     {
         try {
             $moduleService = ModuleServiceHelper::getService($serviceName);
-    
+
             if ($moduleService) {
                 return $moduleService->performAction($params);
             }
