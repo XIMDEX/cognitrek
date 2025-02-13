@@ -1,5 +1,7 @@
 <?php
 
+umask(0002);
+
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 
