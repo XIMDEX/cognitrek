@@ -41,7 +41,7 @@ class ResourceController extends Controller
             $output = $this->useService('conversion_service', $params);
 
             if (!$output['success']) {
-                throw new \Error(print_r($output));
+                throw new \Error(json_encode($output));
             }
 
             $json = file_get_contents($validated['content']);
