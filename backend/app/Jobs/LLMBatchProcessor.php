@@ -208,6 +208,7 @@ class LLMBatchProcessor implements ShouldQueue
                         $this->fail(new \Exception('Adaptation generation failed.'));
                         throw new \Error('Batch failed');
                     } else {
+                        $data_variant['proccessing_id'] = null;
                         $v = $this->variantService->create($data_variant);
                         Log::info('Adaptation generation completed.', []);
                     }
