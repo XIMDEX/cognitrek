@@ -8,7 +8,7 @@ interface XAvatarProps {
     size: 'sm' | 'md' | 'lg' | 'xl'
 }
 
-const Avatar = ({items, email, username, image, size='sm'}: XAvatarProps): JSX.Element => {
+const Avatar = ({items, email, username, image, size='sm'}: XAvatarProps): React.ReactNode => {
     return (
         <XAvatar 
             items={items} 
