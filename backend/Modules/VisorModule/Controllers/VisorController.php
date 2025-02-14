@@ -58,6 +58,7 @@ class VisorController extends Controller
                 foreach ($variants_label as $vl) {
                     $content_variant = json_decode($vl->content, true);
                     if (!isset($content_variant['data'])) {
+                        
                         $sections = $this->variantService->adaptHTML($sections, $content_variant, $this->conditionService->getById($vl->condition_id)->label, $vl->condition_id);
                     } else {
                         $processing[] = $vl->condition_id;
