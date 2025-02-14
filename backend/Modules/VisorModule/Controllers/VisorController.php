@@ -58,7 +58,6 @@ class VisorController extends Controller
                 foreach ($variants_label as $vl) {
                     $content_variant = json_decode($vl->content, true);
                     if (!isset($content_variant['data'])) {
-                        
                         $sections = $this->variantService->adaptHTML($sections, $content_variant, $this->conditionService->getById($vl->condition_id)->label, $vl->condition_id);
                     } else {
                         $processing[] = $vl->condition_id;
@@ -127,7 +126,7 @@ class VisorController extends Controller
                 $sections = $content['sections'];
                 foreach ($variants_label as $vl) {
                     $content = json_decode($vl->content);
-                    $sections = $this->variantService->adaptHTML($sections, $content);
+                    $sections = $this->variantService->adaptHTML($sections, $content, $this->conditionService->getById($vl->condition_id)->label, $vl->condition_id);
                 }
                 $content['sections'] = $sections;
             }
