@@ -72,13 +72,13 @@ class VariantService
         $variant = Variant::find($data['id']);
 
         if (!$variant) {
-            return null; 
+            return null;
         }
 
         if (isset($data['resource_id'])) {
             $variant->resource_id = $data['resource_id'];
         }
-        
+
         if (isset($data['condition_id'])) {
             $variant->condition_id = $data['condition_id'];
         }
@@ -101,29 +101,29 @@ class VariantService
         if (isset($data['proccessing_id'])) {
             $variant->proccessing_id = $data['proccessing_id'];
         }
-        
+
         $variant->save();
         return $variant;
     }
 
 
-    public function adaptHTML($jsonHTML, $jsonAdaptation, $condition_label, $condition_id) 
+    public function adaptHTML($jsonHTML, $jsonAdaptation, $condition_label, $condition_id)
     {
         $output = [];
 
         if (!$jsonAdaptation) return $jsonHTML;
-        
+
         foreach ($jsonHTML as $idx => $section) {
-            $output[] = $this->parseSection($section, $jsonAdaptation[$section['page']], $condition_label, $condition_id);
+            $output[] = $this->parseSection($section, $jsonAdaptation[$section['page']-1], $condition_label, $condition_id);
         }
 
         return $output;
     }
 
-    
+
     public function parseSection($pageData, $modifications, $condition_label, $condition_id)
     {
-    
+
         foreach ($pageData['blocks'] as &$block) {
             if ($block['type'] === 'text') {
                 if (!isset($block['blocks']) || count($block['blocks']) === 0) {
@@ -147,7 +147,7 @@ class VariantService
                 if (!isset($block['original'])) {
                     $block['original'] = $fullText;
                 }
-                
+
                 $block['condition_label'] = $condition_label;
                 $block['condition_id'] = $condition_id;
 
@@ -155,7 +155,7 @@ class VariantService
                     return $a['start_position_modification'] <=> $b['start_position_modification'];
                 });
 
-                
+
                 foreach ($block['blocks'] as $key => $subBlock) {
                     if (array_column($blockModifications, 'id')) {
                         $newText = '';
@@ -170,16 +170,16 @@ class VariantService
 
                                 } elseif ( $mod['type'] == 'deleted') {
 
-                                } else {                                    
+                                } else {
                                     $start = $mod['start_position_modification'];
                                     $end = $mod['end_position_modification'];
-                                    
+
                                     $txt_raw = mb_substr($subBlock['content'], $start, $end - $length_txt_change);
                                     $newText .= mb_substr($subBlock['content'], 0, $start - $length_txt_change);
                                     $newText .= $mod['modified_text'];
                                     $newText .= mb_substr($subBlock['content'], $end , -1);
                                     $length_txt_change += strlen($txt_raw) - strlen($mod['modified_text']);
-    
+
                                     $block['blocks'][$key]['action'] = 'modified';
                                     $block['blocks'][$key]['original'] = $block['blocks'][$key];
                                     $block['blocks'][$key]['modified'][] = [
