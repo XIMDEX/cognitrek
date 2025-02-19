@@ -19,6 +19,7 @@ type AccordionItem = {
     content?: React.ReactNode;
     iscollapsable?: boolean;
     isopen?: boolean;
+    class?: string
 };
 
 
@@ -28,15 +29,15 @@ export function Accordion({ items }: { items: AccordionItem[] }) {
             {items.map((item: AccordionItem, idx: number) => {
                 return item.content ?
                     (
-                        <FBAccordion.Panel key={idx} isOpen={false}>
-                            <FBAccordion.Title>{item.title}</FBAccordion.Title>
+                        <FBAccordion.Panel key={idx} isOpen={false} >
+                            <FBAccordion.Title className={item.class ?? ''}>{item.title}</FBAccordion.Title>
                             <FBAccordion.Content>
                                 {item.content}
                             </FBAccordion.Content>
                         </FBAccordion.Panel>
                     ) : (
                         <FBAccordion.Panel key={idx} isOpen={false}>
-                            <ItemWithoutContent>{item.title}</ItemWithoutContent>
+                            <ItemWithoutContent className={item.class ?? ''}>{item.title}</ItemWithoutContent>
                         </FBAccordion.Panel>
                     )
             })}
