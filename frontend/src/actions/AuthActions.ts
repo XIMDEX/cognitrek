@@ -25,17 +25,18 @@ export const login = async (credentials: Credentials) => {
 };
 
 export const logout = async () => {
+  const { setUser, user } = useAuthStore.getState();
   try {
-    const { setUser, user } = useAuthStore.getState();
-    const response = await logoutService(user);
-    if (response) {
-      localStorage.removeItem('JWT');
-      sessionStorage.removeItem('JWT');
-      setUser(null);
-    }  
+    await logoutService(user);
   } catch (err: unknown) {
     console.error(err);
+  } finally {
+    await globalThis.cookieStore.delete('JWT');
+    localStorage.removeItem('JWT');
+    sessionStorage.removeItem('JWT');
+    setUser(null);
   }
+
 };
 
 export const checkAuth = async () => {

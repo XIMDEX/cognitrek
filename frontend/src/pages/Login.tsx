@@ -1,7 +1,8 @@
 import Button  from "../components/ui/Button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { login } from "../actions/AuthActions";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const LOGO_IMG = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpaRZ2iX_qRa5HtyUH4YxshnC_LDbU9O5d9Q&s"
 
@@ -12,10 +13,24 @@ const SCREENS = {
 }
 
 export default function Login() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const {state} = location;
+    const {user} = useAuthStore.getState();
     const [screen, setScreen] = useState(SCREENS.LOGIN);
     const { loading, error } = useAuthStore();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    useEffect(() => {
+        if (user && state?.from) {
+            navigate(state.from);
+        } 
+        if (user && !state?.from) {
+            navigate('/');
+        }
+            
+    }, [user, state, navigate]);
   
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();

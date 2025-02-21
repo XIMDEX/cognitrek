@@ -4,24 +4,37 @@ import { UserLogged } from "../interfaces/user";
 
 
 export const loginService = async (credentials: Credentials): Promise<LoginResponse> => {
-    const response = await fetch(LOGIN_PATH, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-    });
-    const data = await parseResponse(response);
-    return data;
+    try
+    {
+        const response = await fetch(LOGIN_PATH, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(credentials),
+        });
+        const data = await parseResponse(response);
+        return data;
+    }
+    catch (e) {
+        console.error(e);
+        return { user: null, error: 'Error in login' };
+    }
 };
 
 export const logoutService = async (user) => {
-    const response = await fetch(LOGOUT_PATH, {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${user.token}`
-        },
-    })
-    return response.ok;
+
+    try {
+        const response = await fetch(LOGOUT_PATH, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${user.token}`
+            },
+        })
+        return response.ok;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
 }
 
 
