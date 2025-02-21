@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ConditionController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\LLMController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\VariantController;
@@ -48,8 +49,15 @@ Route::group(['prefix' => 'v1', 'as' => 'v.'], function() {
         Route::post('/conceptual_map',[ResourceController::class, 'regenerate_conceptualmap'])->name('resouce.regenerate_conceptualmap');
 
         Route::get('/variants', [VariantController::class, 'getResourceVariants'])->name('resource.variants');
-    });
+        Route::get('/adaptations', [VariantController::class, 'getResourceAdaptations'])->name('resource.adaptations');
+    
+        Route::get('/users/{user_id}/adaptations', [VariantController::class, 'getUserAdaptation'])->name('resource.user.adaptation');
 
+        Route::post('/users/{user_id}/assign/{adaptation_id}', [VariantController::class, 'setUserAdaptation'])->name('resource.user.adaptation.set');
+    
+        Route::get('/feedback', [FeedbackController::class, 'getFeedbackResource'])->name('resource.feedback');
+    
+    });
 
     Route::group(['prefix' => 'variants'], function() {
         Route::get('/', [VariantController::class, 'index'])->name('variant.list');
@@ -66,4 +74,13 @@ Route::group(['prefix' => 'v1', 'as' => 'v.'], function() {
         Route::put('/{condition_id}', [ConditionController::class, 'update'])->name('condition.update');
         Route::delete('/{condition_id}', [ConditionController::class, 'destroy'])->name('condition.destroy');
     });
+
+    Route::group(['prefix' => 'feedback'], function() {
+        Route::get('/{variant_id}', [FeedbackController::class, 'getFeedback'])->name('feedback.get');
+        Route::get('/{variant_id}/{user_id}', [FeedbackController::class, 'getFeedbackByUser'])->name('feedback.get_by_user');
+        Route::post('/', [FeedbackController::class, 'createFeedback'])->name('feedback.create');
+        Route::put('/{variant_id}/{user_id}', [FeedbackController::class, 'updateFeedback'])->name('feedback.update');
+        Route::delete('/{variant_id}/{user_id}', [FeedbackController::class, 'deleteFeedback'])->name('feedback.delete');
+    });
+
 });

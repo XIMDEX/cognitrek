@@ -6,6 +6,7 @@ use App\Http\Services\Ximdex\XDamService;
 use App\Jobs\LLMBatchProcessor;
 use App\Services\ConditionService;
 use App\Services\ResourceService;
+use App\Services\UserVariantService;
 use Illuminate\Http\Request;
 use App\Services\VariantService;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,13 +14,20 @@ use Symfony\Component\HttpFoundation\Response;
 class VariantController extends Controller
 {
     protected $variantService;
+    protected $userVariantService;
     protected $resourceService;
     protected $xDamService;
     protected $conditionService;
 
-    public function __construct(VariantService $variantService, ResourceService $resourceService, XDamService $xDamService, ConditionService $conditionService)
-    {
+    public function __construct(
+        VariantService $variantService, 
+        ResourceService $resourceService, 
+        XDamService $xDamService, 
+        ConditionService $conditionService,
+        UserVariantService $userVariantService
+    ) {
         $this->variantService = $variantService;
+        $this->userVariantService = $userVariantService;
         $this->resourceService = $resourceService;
         $this->xDamService = $xDamService;
         $this->conditionService = $conditionService;
@@ -174,4 +182,83 @@ class VariantController extends Controller
         }
         return response()->json(['error' => 'Variant not found'], 404);
     }
+
+    public function getResourceAdaptations(Request $request, $resourceID)
+    {
+        
+        $resource = $this->resourceService->getByXdamId($resourceID);
+        if (!$resource) {
+            return response()->json([]);
+        }
+
+        $variants = $this->variantService->getAdaptations($resource->id);
+
+        if (!$variants) $variants = [];
+        return response()->json($variants);
+    }
+
+    public function getUserAdaptation(Request $request, $resourceID, $userID)
+    {
+
+        $resource = $this->resourceService->getByXdamId($resourceID);
+        if (!$resource) {
+            return response()->json([]);
+        }
+        $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
+
+        $adaptation = $this->userVariantService->getUserAdaptation($resource->id, $userHash);
+
+        if (!$adaptation) $adaptation = [];
+        return response()->json($adaptation);
+        
+    }
+
+
+    public function setUserAdaptation(Request $request, $resourceID, $userID, $adaptationID)
+    {
+        $resource = $this->resourceService->getByXdamId($resourceID);
+        if (!$resource) {
+            return response()->json([]);
+        }
+
+        $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
+        $resource_adaptations = $this->variantService->search(['resource_id' => $resource->id, 'adaptation_id' => $adaptationID])->first();
+
+        
+        $adaptation = $this->userVariantService->getUserAdaptation($resource->id, $userHash);
+        
+        if (!$resource_adaptations && $adaptation) {
+            $adaptation->delete();
+            return response()->json(['status' => 'unassigned'], 200);
+        }
+
+        if ($adaptation && $adaptation->variant_id !== $adaptationID) {
+            $adaptation->variant_id = $adaptationID;
+            $adaptation->save();
+        } else {
+            $adaptation = $this->userVariantService->create([
+                'resource_id' => $resource->id,
+                'dam_id' => $resourceID,
+                'label' => $resource_adaptations->label,
+                'conditions' => $resource_adaptations->condition(),
+                'user_id' => $userHash,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+   
+        if ($adaptation) {
+            return response()->json([
+                'data' => [
+                    'resource_id' => $resource->id,
+                    'label' => $adaptationID,
+                    'user_id' => $userID,
+                    'adaptation_id' => $adaptationID,
+                    'created_at' => $adaptation['created_at']
+                ]
+            ], 201);
+        }
+        return response()->json(['error' => 'Error creating adaptation'], 500);
+
+    } 
 }

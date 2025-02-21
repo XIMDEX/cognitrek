@@ -239,4 +239,14 @@ class VariantService
 
         return $pageData;
     }
+
+    public function getAdaptations($resourceID)
+    {
+        try {
+            $adaptations = Variant::where('resource_id', $resourceID)->select('label', 'adaptation_id')->distinct()->get();
+            return $adaptations;
+        } catch(\Exception $exc) {
+            return [];
+        }
+    }
 }
