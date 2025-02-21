@@ -122,7 +122,7 @@ export default function UserGroup() {
                     setResource(null)
                     setShowModal(false)
                 }}
-                        />
+            />
         </div>
     )
 }

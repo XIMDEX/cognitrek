@@ -12,6 +12,7 @@ import HomeIcon from "../icons/HomeIcon";
 import { useAuthStore } from "../../store/authStore";
 import {  useMemo } from "react";
 import { ROLES } from "../../config/constants";
+import {StarIcon} from "../icons/StarIcon";
 
 export default function NavbarSidebarLayout() {
 
@@ -29,7 +30,8 @@ export default function NavbarSidebarLayout() {
             { label: 'Groups', icon: () => <NavLink to={"groups"}><GroupsIcon/></NavLink> },
         ]
         if (user?.role == ROLES.ADMIN || user?.role == ROLES.SUPERADMIN) {
-            data.push({ label: 'Traces', icon: () => <NavLink to={"services"}><ServiceIcon/></NavLink> })
+            data.push({ label: 'Feedback', icon: () => <NavLink to={"resources-feedback"}><StarIcon className=""/></NavLink> })
+            data.push({ label: 'Traces', icon: () => <NavLink to={"traces"}><ServiceIcon/></NavLink> })
         }
         return data;
     }, [user]);

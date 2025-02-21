@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import Accordion from "../components/ui/Accordion"
+import Accordion from "./ui/Accordion"
 import { COGNITREK_BACKEND_URL } from "../config/constants"
 
 const ID = '9e175f78-e410-4654-bf94-f1bfff1a7198'

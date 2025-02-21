@@ -53,7 +53,7 @@ const Resources = () => {
           message={{ type: 'cognitrek', content: 'READY', id:1}}
         />
       )}
-      { showResource && resourceId && (
+      { showResource && resourceId !== '' && (
         <div className="bg-slate-400 w-full absolute top-0 left-0 flex flex-col" style={{height: 'calc(100vh - 100px)'}}>
      
           <Iframe 

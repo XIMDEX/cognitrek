@@ -14,3 +14,5 @@ export const ROLES = {
     EDITOR: 'editor',
     VIEWER: 'viewer',
 }
+
+export const DOCUMENT_CORE_ID = import.meta.env.VITE_DOCUMENT_CORE_ID;

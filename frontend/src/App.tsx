@@ -13,14 +13,16 @@ import BasicLayout from "./components/layouts/BasicLayout";
 import { checkAuth } from "./actions/AuthActions";
 import UserGroup from "./pages/UserGroup";
 import PrivateRoute from "./components/PrivateRoute";
+import ResourcesFeedback from "./pages/ResourcesFeedback";
+import Visor from "./pages/Visor";
 
 const HomePage = lazy(() => import("./pages/Home"));
 const ResourcePage = lazy(() => import("./pages/Resources"));
 const GroupsPage = lazy(() => import("./pages/Groups"));
-const ServicesPage = lazy(() => import("./pages/Services"));
 const AdminPanelPage = lazy(() => import("./pages/AdminPanel"));
 const LoginPage = lazy(() => import("./pages/Login"));
-const TraceLLM = lazy(() => import("./pages/TraceLLM"));
+const Traces = lazy(() => import("./pages/Traces"));
+const SingleTrace = lazy(() => import("./pages/SingleTrace"));
 
 const Loader = () => <div>Cargando...</div>;
 
@@ -60,11 +62,22 @@ const routesFromElements = createRoutesFromElements(
         errorElement={<ErrorBoundary />}
       />
       <Route
-        path="/services"
+        path="/traces"
         element={
           <PrivateRoute>
             <Suspense fallback={<Loader />}>
-              <ServicesPage />
+              <Traces />
+            </Suspense>
+          </PrivateRoute>
+        }
+        errorElement={<ErrorBoundary />}
+      />
+      <Route
+        path="/trace/:resource_id"
+        element={
+          <PrivateRoute>
+            <Suspense fallback={<Loader />}>
+              <SingleTrace />
             </Suspense>
           </PrivateRoute>
         }
@@ -75,7 +88,7 @@ const routesFromElements = createRoutesFromElements(
         element={
           <PrivateRoute>
             <Suspense fallback={<Loader />}>
-              <TraceLLM />
+              <Visor />
             </Suspense>
           </PrivateRoute>
         }
@@ -87,6 +100,17 @@ const routesFromElements = createRoutesFromElements(
           <PrivateRoute>
             <Suspense fallback={<Loader />}>
               <UserGroup/>
+            </Suspense>
+          </PrivateRoute>
+        }
+        errorElement={<ErrorBoundary />}
+      />
+      <Route
+        path="/resources-feedback"
+        element={
+          <PrivateRoute isAdminPage={false}>
+            <Suspense fallback={<Loader />}>
+              <ResourcesFeedback/>
             </Suspense>
           </PrivateRoute>
         }
