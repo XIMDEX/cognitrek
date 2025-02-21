@@ -20,9 +20,9 @@ class VariantController extends Controller
     protected $conditionService;
 
     public function __construct(
-        VariantService $variantService, 
-        ResourceService $resourceService, 
-        XDamService $xDamService, 
+        VariantService $variantService,
+        ResourceService $resourceService,
+        XDamService $xDamService,
         ConditionService $conditionService,
         UserVariantService $userVariantService
     ) {
@@ -185,7 +185,7 @@ class VariantController extends Controller
 
     public function getResourceAdaptations(Request $request, $resourceID)
     {
-        
+
         $resource = $this->resourceService->getByXdamId($resourceID);
         if (!$resource) {
             return response()->json([]);
@@ -210,12 +210,18 @@ class VariantController extends Controller
 
         if (!$adaptation) $adaptation = [];
         return response()->json($adaptation);
-        
+
     }
 
 
-    public function setUserAdaptation(Request $request, $resourceID, $userID, $adaptationID)
+    public function setUserAdaptation(Request $request, $resourceID, $userID)
     {
+        $validated = $request->validate([
+            'adaptation_id' => 'required|string',
+        ]);
+        if (!$validated) {
+            return response()->json(['error' => 'Adaptation not found'], 404);
+        }
         $resource = $this->resourceService->getByXdamId($resourceID);
         if (!$resource) {
             return response()->json([]);
@@ -224,9 +230,9 @@ class VariantController extends Controller
         $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
         $resource_adaptations = $this->variantService->search(['resource_id' => $resource->id, 'adaptation_id' => $adaptationID])->first();
 
-        
+
         $adaptation = $this->userVariantService->getUserAdaptation($resource->id, $userHash);
-        
+
         if (!$resource_adaptations && $adaptation) {
             $adaptation->delete();
             return response()->json(['status' => 'unassigned'], 200);
@@ -246,7 +252,7 @@ class VariantController extends Controller
                 'updated_at' => now(),
             ]);
         }
-   
+
         if ($adaptation) {
             return response()->json([
                 'data' => [
@@ -260,5 +266,5 @@ class VariantController extends Controller
         }
         return response()->json(['error' => 'Error creating adaptation'], 500);
 
-    } 
+    }
 }

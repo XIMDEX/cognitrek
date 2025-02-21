@@ -52,15 +52,31 @@ class FeedbackController extends Controller
         return response()->json($feedback);
     }
 
+    public function getFeedbackResourceByUser(Request $request, $resourceID, $userID)
+    {
+        $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
+        $variants = $this->variantService->getAllByResourceOrdered($resourceID);
+
+        $feedbacks = [];
+        foreach ($variants as $variant) {
+            $feedback = $this->feedbackService->getFeedbackByUser($variant->id, $userHash);
+            $feedback->user_id = $this->useService('anonymizer_service', ['action' => 'decode', 'value' => $feedback->user_id]);
+            $feedbacks[] = $feedback;
+        }
+
+        return response()->json($feedback);
+    }
+    
+
     public function getFeedbackByUser($variantID, $userID)
     {
         $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
         $feedback = $this->feedbackService->getFeedbackByUser($variantID, $userHash);
-        
+
         if (!$feedback) {
             return response()->json([]);
         }
-        
+
         return response()->json($feedback);
     }
 
@@ -68,7 +84,7 @@ class FeedbackController extends Controller
     {
         $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
         $feedback = $this->feedbackService->getFeedbackByUserAndVariant($variantID, $userHash);
-        
+
         if (!$feedback) {
             return response()->json([]);
         }
@@ -83,11 +99,11 @@ class FeedbackController extends Controller
         ]);
 
         $feedback = $this->feedbackService->updateFeedback($variantID, $userHash, $validated['score']);
-        
+
         if (!$feedback) {
             return response()->json(['message' => 'Feedback not found']);
         }
-        
+
         return response()->json($feedback);
     }
 

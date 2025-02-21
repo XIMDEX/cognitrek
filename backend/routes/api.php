@@ -50,13 +50,12 @@ Route::group(['prefix' => 'v1', 'as' => 'v.'], function() {
 
         Route::get('/variants', [VariantController::class, 'getResourceVariants'])->name('resource.variants');
         Route::get('/adaptations', [VariantController::class, 'getResourceAdaptations'])->name('resource.adaptations');
-    
-        Route::get('/users/{user_id}/adaptations', [VariantController::class, 'getUserAdaptation'])->name('resource.user.adaptation');
 
-        Route::post('/users/{user_id}/assign/{adaptation_id}', [VariantController::class, 'setUserAdaptation'])->name('resource.user.adaptation.set');
-    
-        Route::get('/feedback', [FeedbackController::class, 'getFeedbackResource'])->name('resource.feedback');
-    
+        Route::get('/users/{user_id}/adaptations', [VariantController::class, 'getUserAdaptation'])->name('resource.user.adaptation');
+        Route::post('/users/{user_id}/adaptations', [VariantController::class, 'setUserAdaptation'])->name('resource.user.adaptation.set');
+
+        Route::get('/feedbacks', [FeedbackController::class, 'getFeedbackResource'])->name('resource.feedback');
+        Route::get('/feedbacks/users/{user_id}', [FeedbackController::class, 'getFeedbackResourceByUser'])->name('resource.feedback.user');
     });
 
     Route::group(['prefix' => 'variants'], function() {
