@@ -37,14 +37,18 @@ class XAuthService
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
-            
+
     }
-        
-     
+
+
     private function login($data) {
         try {
             $response = $this->service->login($data['email'], $data['password']);
-            return $response;
+            $whoami = $this->service->whoami($response['access_token']);
+            if (!isset($whoami['data']['access_token'])) {
+                $whoami['data']['access_token'] = $response['access_token'];
+            }
+            return $whoami['data'];
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
@@ -67,5 +71,4 @@ class XAuthService
             throw new \Exception($e->getMessage());
         }
     }
-
 }
