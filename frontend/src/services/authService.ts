@@ -1,22 +1,10 @@
-import { COGNITREK_BACKEND_URL } from "../config/constants";
+import { LOGIN_PATH, LOGOUT_PATH, ROLES } from "../config/constants";
+import { Credentials, LoginResponse } from "../interfaces/auth";
+import { UserLogged } from "../interfaces/user";
 
-export interface Credentials {
-    email: string;
-    password: string;
-}
-
-export interface User {
-    id: string;
-    name: string;
-}
-
-export interface LoginResponse {
-    user: User | null;
-    error?: string;
-}
 
 export const loginService = async (credentials: Credentials): Promise<LoginResponse> => {
-    const response = await fetch(COGNITREK_BACKEND_URL + '/api/v1/login', {
+    const response = await fetch(LOGIN_PATH, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
@@ -24,6 +12,19 @@ export const loginService = async (credentials: Credentials): Promise<LoginRespo
     const data = await parseResponse(response);
     return data;
 };
+
+export const logoutService = async (user) => {
+    const response = await fetch(LOGOUT_PATH, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token}`
+        },
+    })
+    return response.ok;
+}
+
+
 
 const parseResponse = async (response: Response) => {
     const data: LoginResponse = {
@@ -34,16 +35,43 @@ const parseResponse = async (response: Response) => {
         data.user = parseUser(json);
     } else {
         const error = await response.json();
-        data.error = error.message;
+        data.error = error.message ?? error.error;
     }
     return data;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const parseUser = (data: any): User => {
-    return {
-            id: data.id,
-            name: data.name,
+export const parseUser = (data: any, token?: string): UserLogged => {
+    const user: UserLogged = {
+        id: data.id,
+        name: data.name,
+        token: data.access_token ?? token,
+        email: data.email,
+        isAuth: true
     }
+
+    if (data.workspaces) {
+        user.groups = data.workspaces;
+    }
+
+    if (data.role) {
+        user.role = parseRol(data.role.name);
+    }
+    return user;
     
+}
+
+const parseRol = (role: string ): (typeof ROLES)[keyof typeof ROLES] => {
+    switch (role) {
+        case 'super-admin':
+            return ROLES.SUPERADMIN;
+        case 'admin':
+            return ROLES.ADMIN;
+        case 'editor':
+            return ROLES.EDITOR;
+        case 'user':
+            return ROLES.USER;
+        default:
+            return ROLES.VIEWER;
+    }
 }

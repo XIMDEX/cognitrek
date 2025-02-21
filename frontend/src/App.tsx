@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   Route,
   createBrowserRouter,
@@ -10,6 +10,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import NavbarSidebarLayout from "./components/layouts/NavbarSidebarLayout";
 import BasicLayout from "./components/layouts/BasicLayout";
 import PrivateRoute from "./components/PrivateRoute";
+import { checkAuth } from "./actions/AuthActions";
 
 const HomePage = lazy(() => import("./pages/Home"));
 const ResourcePage = lazy(() => import("./pages/Resources"));
@@ -114,6 +115,24 @@ const routesFromElements = createRoutesFromElements(
 const router = createBrowserRouter(routesFromElements);
 
 const App = () => {
+
+  const [isReady, setReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isReady && !loading) {
+      setLoading(true);
+      checkAuth()
+        .finally(() => {
+          setReady(true);
+          setLoading(false);
+        });
+    }
+  }, []);
+
+  if (!isReady) {
+    return <div>Loading...</div>;
+  }
   return <RouterProvider router={router} />;
 };
 

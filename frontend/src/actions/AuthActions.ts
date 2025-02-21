@@ -1,5 +1,7 @@
 import { useAuthStore } from '../store/authStore';
-import { loginService, Credentials } from '../services/authService';
+import { loginService, logoutService } from '../services/authService';
+import { Credentials } from '../interfaces/auth';
+import { whoamiService } from '../services/userService';
 
 export const login = async (credentials: Credentials) => {
   const { setLoading, setError, setUser } = useAuthStore.getState();
@@ -9,6 +11,8 @@ export const login = async (credentials: Credentials) => {
     const data = await loginService(credentials);
     if (data.user) {
       setUser(data.user);
+      localStorage.setItem('JWT', data.user.token);
+      sessionStorage.setItem('JWT', data.user.token);
     } else {
       setError(data.error || 'Authentication failed');
     }
@@ -20,7 +24,33 @@ export const login = async (credentials: Credentials) => {
   }
 };
 
-export const logout = () => {
-  const { setUser } = useAuthStore.getState();
-  setUser(null);
+export const logout = async () => {
+  try {
+    const { setUser, user } = useAuthStore.getState();
+    const response = await logoutService(user);
+    if (response) {
+      localStorage.removeItem('JWT');
+      sessionStorage.removeItem('JWT');
+      setUser(null);
+    }  
+  } catch (err: unknown) {
+    console.error(err);
+  }
 };
+
+export const checkAuth = async () => {
+  const token = localStorage.getItem('JWT') ?? sessionStorage.getItem('JWT') ?? (await globalThis.cookieStore.get('JWT'))?.value;
+  const { setUser, user } = useAuthStore.getState();
+
+  if (token) {
+    const response = await whoamiService(token);
+    if (response) {
+      setUser(response);
+    } else {
+      setUser(null)
+      localStorage.removeItem('JWT');
+      sessionStorage.removeItem('JWT');
+    }
+  }
+  return !!user;
+} 
