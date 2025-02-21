@@ -58,7 +58,7 @@ class XDirService extends XimdexBaseService
         }
     }
 
-    public function whoami()
+    public function whoami($token)
     {
         try {
             $response = $this->httpClient->request('GET', $this->base_url . '/me', [
@@ -69,6 +69,6 @@ class XDirService extends XimdexBaseService
             return $response;
         } catch (Exception $e) {
             throw new Exception("Error during whoami request: " . $e->getMessage(), $e->getCode(), $e);
-        }
+        } 
     }
 }

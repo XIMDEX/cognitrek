@@ -23,7 +23,7 @@ class XDamService extends XimdexBaseService
         $this->base_url = $xdamService['uri'];
         $this->login_url =  $xdamService['login_endpoint'];
 
-        $this->token = $token ?? env('XDAM_TOKEN');
+        // $this->token = $token ?? env('XDAM_TOKEN');
     }
 
     public function login($email, $password)
@@ -65,7 +65,7 @@ class XDamService extends XimdexBaseService
         }
     }
 
-    public function whoami()
+    public function whoami($token)
     {
         try {
             $response = $this->httpClient->request('GET', $this->base_url . '/user/me', [
@@ -145,5 +145,10 @@ class XDamService extends XimdexBaseService
         $tempFileWithExtension = $tempFile . '.' . $ext;
         rename($tempFile, $tempFileWithExtension);
         return $tempFileWithExtension;
+    }
+
+    public function setToken($token)
+    {
+        $this->token = $token;
     }
 }

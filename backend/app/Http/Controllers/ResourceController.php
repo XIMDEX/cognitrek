@@ -30,6 +30,8 @@ class ResourceController extends Controller
             'xdam_id' => $resourceID,
         ];
 
+        $this->xDamService->setToken($request->bearerToken());
+
         Storage::makeDirectory("public/".$resourceID);
         $params = $this->xDamService->getResource($resourceID);
         try {

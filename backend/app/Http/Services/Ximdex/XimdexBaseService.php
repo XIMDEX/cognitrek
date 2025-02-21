@@ -41,7 +41,7 @@ abstract class XimdexBaseService
 
     abstract protected function logout();
 
-    abstract protected function whoami();
+    abstract protected function whoami($token);
     
     /**
      * Checks if the user is currently authenticated.

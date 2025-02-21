@@ -3,7 +3,6 @@
 namespace Modules\AuthXdirModule\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Services\Ximdex\XDamService;
 use Illuminate\Http\Request;
 
 class XAuthController extends Controller
@@ -15,8 +14,6 @@ class XAuthController extends Controller
             'email' => 'required|string',
             'password' => 'required|string',
         ]);
-
-
 
         try {
             $user = $this->useService('xauth_service', ['action' => 'login', 'data' => $validated]);
@@ -30,9 +27,10 @@ class XAuthController extends Controller
     }
 
 
-    public function logout()
+    public function logout(Request $request)
     {
-        $response = $this->useService('xauth_service', ['action' => 'login', 'data' => []]);
+        
+        $response = $this->useService('xauth_service', ['action' => 'login', 'data' => ['token' => $request->bearerToken()]]);
         return response()->json($response);
     }
 

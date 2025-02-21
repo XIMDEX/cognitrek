@@ -44,7 +44,7 @@ class XAuthService
     private function login($data) {
         try {
             $response = $this->service->login($data['email'], $data['password']);
-            $whoami = $this->service->whoami($response['access_token']);
+            $whoami = $this->service->whoami([$response['access_token']]);
             if (!isset($whoami['data']['access_token'])) {
                 $whoami['data']['access_token'] = $response['access_token'];
             }
