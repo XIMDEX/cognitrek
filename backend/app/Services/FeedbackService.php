@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Feedback;
 
-class FeebackService
+class FeedbackService
 {
 
     public function create(array $data): Feedback

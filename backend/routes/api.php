@@ -34,7 +34,7 @@ Route::group(['prefix' => 'v1', 'as' => 'v.'], function() {
         return response()->json(['status' => 'OK']);
     })->name('api.v1.status_health');
 
-
+    Route::get('/resources', [ResourceController::class, 'index'])->name('resource.list');
     Route::group(['prefix' => 'resources/{resouce_id}'], function() {
         Route::get('/',[ResourceController::class, 'show'])->name('resouce.show');
         Route::post('/', [ResourceController::class, 'store'])->name('resouce.store');

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\FeebackService;
+use App\Services\FeedbackService;
 use App\Services\VariantService;
 use Illuminate\Http\Request;
 
@@ -11,7 +11,7 @@ class FeedbackController extends Controller
     protected $feedbackService;
     protected $variantService;
 
-    public function __construct(FeebackService $feedbackService, VariantService $variantService)
+    public function __construct(FeedbackService $feedbackService, VariantService $variantService)
     {
         $this->feedbackService = $feedbackService;
         $this->variantService = $variantService;
@@ -41,15 +41,19 @@ class FeedbackController extends Controller
     {
         $variants = $this->variantService->getAllByResourceOrdered($resourceID);
 
-        $feedbacks = [];
+        $output = [];
         foreach ($variants as $variant) {
-            $feedback = $this->feedbackService->getFeedback($variant->id);
-            $feedback->user_id = $this->useService('anonymizer_service', ['action' => 'decode', 'value' => $feedback->user_id]);
-            $feedbacks[] = $feedback;
+            $feedbacks = $this->feedbackService->getFeedback($variant->id);
+            if (count($feedbacks)>0) {
+                foreach ($feedbacks as $feedback) {
+                    $feedback->user_id = $this->useService('anonymizer_service', ['action' => 'decode', 'value' => $feedback->user_id]);
+                    $output[] = $feedback;
+                }
+            }
         }
 
 
-        return response()->json($feedback);
+        return response()->json($output);
     }
 
     public function getFeedbackResourceByUser(Request $request, $resourceID, $userID)
