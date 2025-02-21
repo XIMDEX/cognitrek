@@ -4,6 +4,7 @@ namespace App\Http\Services\Ximdex;
 
 use App\Http\Services\Http\HttpClientService;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class XDamService extends XimdexBaseService
@@ -21,13 +22,66 @@ class XDamService extends XimdexBaseService
         $this->base_url = $xdamService['uri'];
         parent::__construct($httpClient);
 
-        $this->token = env('XDAM_TOKEN');
+        $this->token = $token ?? env('XDAM_TOKEN');
+    }
+
+    public function login($email, $password)
+    {
+        try {
+            $response = $this->httpClient->request('POST', $this->login_url, [
+                'json' => [
+                    'email' => $email,
+                    'password' => $password,
+                ]
+            ]);
+        } catch (Exception $e) {
+            throw new Exception("Error during login request: " . $e->getMessage(), $e->getCode(), $e);
+        }
+
+        if (empty($response['token'])) {
+            throw new Exception("No token received from login.");
+        }
+
+        $this->setTokenCache($response['token']);
+    }
+
+    public function logout()
+    {
+        try {
+            $response = $this->httpClient->request('POST', $this->base_url . '/user/logout', [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $this->token,
+                ],
+                'json' => []
+            ]);
+            if ($response['status'] == 'success') {
+                Cache::forget($this->tokenCacheKey);
+            }
+        } catch (Exception $e) {
+            throw new Exception("Error during logout request: " . $e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    public function whoami()
+    {
+        try {
+            $response = $this->httpClient->request('GET', $this->base_url . '/user/me', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->token,
+                ]
+            ]);
+            return $response;
+        } catch (Exception $e) {
+            throw new Exception("Error during whoami request: " . $e->getMessage(), $e->getCode(), $e);
+        }
     }
 
     private function damRequest($request, $method='GET', $body=[], $json=true)
     {
-        // $this->checkAuth();
-
+        if ($this->checkAuth() === false) {
+            throw new Exception("Error fetching -- Not authenticated");
+        }
         try {
             $response = $this->httpClient->request($method, "{$this->base_url}/$request", [
                 'headers' => [
@@ -44,6 +98,9 @@ class XDamService extends XimdexBaseService
 
     public function getResource($id)
     {
+        if ($this->checkAuth() === false) {
+            throw new Exception("Error fetching resource -- Not authenticated");
+        }
         try {
             $dam_resource = $this->damRequest('resource/'.$id);
             if ($dam_resource) {
