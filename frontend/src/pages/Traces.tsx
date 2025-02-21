@@ -4,7 +4,7 @@ import { ResourceGroup } from "../interfaces/resources"
 import TraceLLM from "../components/TraceLLM"
 import LibraryIcon from "../components/icons/LibraryIcon"
 import { Select } from "../components/ui/Select"
-import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import Button from "../components/ui/Button"
 
 export default function Traces() {
