@@ -18,9 +18,10 @@ class XDamService extends XimdexBaseService
     public function __construct(HttpClientService $httpClient)
     {
         $xdamService = config('ximdex.xdam');
+        parent::__construct($httpClient);
         $this->authService = $xdamService['auth'];
         $this->base_url = $xdamService['uri'];
-        parent::__construct($httpClient);
+        $this->login_url =  $xdamService['login_endpoint'];
 
         $this->token = $token ?? env('XDAM_TOKEN');
     }
@@ -38,11 +39,12 @@ class XDamService extends XimdexBaseService
             throw new Exception("Error during login request: " . $e->getMessage(), $e->getCode(), $e);
         }
 
-        if (empty($response['token'])) {
+        if (empty($response['data']['access_token'])) {
             throw new Exception("No token received from login.");
         }
 
-        $this->setTokenCache($response['token']);
+        $this->setTokenCache($response['data']['access_token']);
+        return $response['data'];
     }
 
     public function logout()

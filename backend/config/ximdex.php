@@ -10,7 +10,7 @@ return [
     'xdam' => [
         'uri' => env('XDAM_URI') . '/' . env('XDAM_VERSION'),
         'auth' => env('XDAM_AUTH', 'xdir'),
-        'login_endpoint' => env('XDAM_URI') . '/login',
+        'login_endpoint' => env('XDAM_URI') . '/auth/login',
 
     ]
 ];
