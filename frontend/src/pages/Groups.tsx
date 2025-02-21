@@ -6,9 +6,12 @@ import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import { User } from "../interfaces/user";
 import ModalAssignAdaptation from "../components/ModalAssignAdaptation";
+import { useNavigate } from "react-router-dom";
 
 
 export default function Groups() {
+    const navigate = useNavigate()
+
     const [groups, setGroups] = useState<GroupUsers[]>([]);
     const [loading, setLoading] = useState(true)
     const [selected, setSelected] = useState<GroupUsers|null>(null)
@@ -26,8 +29,15 @@ export default function Groups() {
             .finally(() => setLoading(false))
     }, [])
 
+    useEffect(() => {
+        if (selected && user) {
+            navigate('/user-group', { state: { group: selected, user } })
+        }
+    }, [selected, user, navigate])
+
     const handleSelected = id => {
         const group = groups.find(g => g.id == id)
+
         setSelected(group ?? null)
     }
 
@@ -93,6 +103,7 @@ export default function Groups() {
             <ModalAssignAdaptation 
                 user={user} 
                 group={selected}
+                resource={null}
                 showModal={showModal}  
                 onCloseModal={() => {
                     setUser(null)

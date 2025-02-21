@@ -9,8 +9,10 @@ import {
 import ErrorBoundary from "./components/ErrorBoundary";
 import NavbarSidebarLayout from "./components/layouts/NavbarSidebarLayout";
 import BasicLayout from "./components/layouts/BasicLayout";
-import PrivateRoute from "./components/PrivateRoute";
+
 import { checkAuth } from "./actions/AuthActions";
+import UserGroup from "./pages/UserGroup";
+import PrivateRoute from "./components/PrivateRoute";
 
 const HomePage = lazy(() => import("./pages/Home"));
 const ResourcePage = lazy(() => import("./pages/Resources"));
@@ -79,6 +81,17 @@ const routesFromElements = createRoutesFromElements(
         }
         errorElement={<ErrorBoundary />}
       />
+      <Route
+        path="/user-group"
+        element={
+          <PrivateRoute>
+            <Suspense fallback={<Loader />}>
+              <UserGroup/>
+            </Suspense>
+          </PrivateRoute>
+        }
+        errorElement={<ErrorBoundary />}
+      />
     </Route>
 
     <Route element={<BasicLayout />}>
@@ -128,7 +141,7 @@ const App = () => {
           setLoading(false);
         });
     }
-  }, []);
+  }, [isReady, loading]);
 
   if (!isReady) {
     return <div>Loading...</div>;

@@ -1,16 +1,44 @@
 
 import Modal from "../components/ui/Modal";
-// import { Button } from "flowbite-react";
-import ListResourceAssign from "../components/ui/ListResourceAssign";
 import  Button  from "./ui/Button";
+import { useEffect, useState } from "react";
+import LibraryIcon from "./icons/LibraryIcon";
+import { assingAdaptationResource, getAdaptationUserResource } from "../services/resourceService";
 
-export default function ModalAssignAdaptation({user, showModal, group, onCloseModal }) {
+export default function ModalAssignAdaptation({user, showModal, group, resource, onCloseModal }) {
+    const [selectedAdaptation, setSelectedAdaptation] = useState(null)
+    const [adaptations, setAdaptations] = useState<{label: string, id: string}[]>([])
     const handleSaveAdaptation = () => {}
-    const resources = group?.resources ?? []
 
-    console.log({group, resources})
+    const handleSelectedAdaptation = (value) => {
+        setSelectedAdaptation(value)
+    }
 
-    if (!group || !user) return null
+    useEffect(() => {
+        if (!user || !resource) return
+        getAdaptationUserResource(resource.id, user.id)
+            .then((data) => {
+                setAdaptations(data)
+            })
+            .catch((err) => {
+                console.error(err)
+            })
+    }, [user, resource])
+
+    useEffect(() => {
+        if (selectedAdaptation) {
+            assingAdaptationResource(resource.id, user.id, selectedAdaptation)
+                .then(() => {
+                    onCloseModal()
+                })
+                .catch((err) => {
+                    console.error(err)
+                })
+        }
+
+    }, [selectedAdaptation, onCloseModal, resource, user])
+
+    if (!group || !user || !resource) return null
 
     return (
         <Modal
@@ -18,13 +46,7 @@ export default function ModalAssignAdaptation({user, showModal, group, onCloseMo
             isOpen={showModal} 
             header={{
                 content: (
-                    <>
-                        <span>Assign adaptation to resources</span>
-                        <span className="text-sm text-gray-500 flex flex-row w-full justify-between content-between mt-3">
-                            <span>{group?.name}</span>
-                            <span>{user?.name ?? ''}</span>
-                        </span>
-                    </>
+                    <span>Assign adaptation to resource</span>
                 ), 
                 className: 'border-primary border-b-4 [&>h3]:grow mb-0 pb-2'
             }}
@@ -39,9 +61,36 @@ export default function ModalAssignAdaptation({user, showModal, group, onCloseMo
             }}
             body={{
                 content: (
-                    <>
-                        <ListResourceAssign resources={resources} userid={user?.id} handleChange={() => {}}/>
-                    </>
+                    <div className="px-6 py-4">
+                        <p className="text-gray-600 mb-4">
+                            Select an adaptation to assign to <span className="font-semibold">{user.name}</span>.
+                        </p>
+                        <div className="flex flex-row gap-2 mb-5">
+                            <LibraryIcon className="" />
+                            <span>{resource.name}</span>
+                        </div>
+                        <form onSubmit={handleSaveAdaptation}>
+                            <div className="mb-4">
+                            <label htmlFor="adaptation" className="block text-sm font-medium text-gray-700 mb-2">
+                                Adaptation
+                            </label>
+                            <select
+                                id="adaptation"
+                                value={selectedAdaptation ?? 0}
+                                onChange={(e) => handleSelectedAdaptation(e.target.value)}
+                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                required
+                            >
+                                <option value="0">Original</option>
+                                {adaptations.map((adaptation) => (
+                                    <option key={adaptation.id} value={adaptation.id}>
+                                        {adaptation.label}
+                                    </option>
+                                ))}
+                            </select>
+                            </div>
+                        </form>
+                    </div>
                 ),
                 className: ''
             }}
