@@ -1,4 +1,4 @@
-import { XButton } from "@ximdex/xui-react/dist";
+import Button  from "../components/ui/Button";
 import { useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { login } from "../actions/AuthActions";
@@ -36,7 +36,7 @@ export default function Login() {
         return (
             <section className="bg-secondary">
                 Register form
-                <XButton onClick={setScreenToLogin}>Back</XButton>
+                <Button onClick={setScreenToLogin}>Back</Button>
             </section>
         )
     }
@@ -45,7 +45,7 @@ export default function Login() {
         return (
             <section className="bg-secondary">
                 Forgot password form
-                <XButton onClick={setScreenToLogin}>Back</XButton>
+                <Button onClick={setScreenToLogin}>Back</Button>
             </section>
         )
     }
@@ -96,16 +96,17 @@ export default function Login() {
                             </div>
                             <div className="flex items-center justify-between">
                                 <button 
+                                    type="button"
                                     onClick={setScreenToForgotPassw} 
                                     className="text-sm font-medium text-primary-600 hover:underline "
                                 >Forgot password?</button>
                             </div>
-                            <XButton 
+                            <Button 
                                 type="submit" 
                                 className="w-full" 
                                 style={{maxWidth: '100%', marginBlock: 30}}
                                 disabled={loading}
-                            >{loading ? 'Loading...' : 'Sign in'}</XButton>
+                            >{loading ? 'Loading...' : 'Sign in'}</Button>
                             <p className="text-sm font-light text-gray-500  text-right">
                                 Don’t have an account yet? <button onClick={setScreenToRegister} className="border-0 font-medium text-primary-600 hover:underline">Sign up</button>
                             </p>

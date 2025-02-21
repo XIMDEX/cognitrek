@@ -8,14 +8,31 @@ import ServiceIcon from "../icons/ServiceIcon";
 import Avatar from "../ui/Avatar";
 import Sidebar from "../ui/Sidebar";
 import { logout } from "../../actions/AuthActions";
+import HomeIcon from "../icons/HomeIcon";
+import { useAuthStore } from "../../store/authStore";
+import {  useMemo } from "react";
+import { ROLES } from "../../config/constants";
 
 export default function NavbarSidebarLayout() {
+
+    const {user} = useAuthStore(); 
     
     const handleLogout = () => {
         logout();
         redirect('/login');
     }
 
+    const items = useMemo(() => {
+        const data = [
+            { label: 'Home', icon: () => <NavLink to={"/"} ><HomeIcon/></NavLink> },
+            { label: 'Resources', icon: () => <NavLink to={"resources"} ><ResourcesIcon/></NavLink> },
+            { label: 'Groups', icon: () => <NavLink to={"groups"}><GroupsIcon/></NavLink> },
+        ]
+        if (user?.role == ROLES.ADMIN || user?.role == ROLES.SUPERADMIN) {
+            data.push({ label: 'Traces', icon: () => <NavLink to={"services"}><ServiceIcon/></NavLink> })
+        }
+        return data;
+    }, [user]);
 
     return (
         <div className="h-full w-full flex flex-col">
@@ -25,24 +42,18 @@ export default function NavbarSidebarLayout() {
                 items={[
                     <Avatar
                         size="md"
-                        image="https://as2.ftcdn.net/v2/jpg/02/14/74/61/1000_F_214746128_31JkeaP6rU0NzzzdFC4khGkmqc8noe6h.jpg"  
-                        username="Fran Enriquez" 
-                        email="fenriqez@ximdex.com" 
+                        image={user?.image ?? ''}  
+                        username={user?.name ?? ''}
+                        email={user?.email ?? ''}
                         items={[
-                            <button className="block w-full text-left">Profile</button>,
+                            // <button className="block w-full text-left">Profile</button>,
                             <button onClick={handleLogout} className="block w-full text-left">Logout</button>,
                         ]}
                     />
                 ]}
             />
             <div className="flex overflow-hidden flex-grow">
-                <Sidebar 
-                    items={[
-                        { label: 'Resources', icon: () => <NavLink to={"resources"} ><ResourcesIcon/></NavLink> },
-                        { label: 'Groups', icon: () => <NavLink to={"groups"}><GroupsIcon/></NavLink> },
-                        { label: 'Services', icon: () => <NavLink to={"services"}><ServiceIcon/></NavLink> }
-                    ]} 
-                />
+                <Sidebar items={items} />
                 <main className="flex-1 bg-white ">
                     <Outlet />
                 </main>
@@ -50,3 +61,4 @@ export default function NavbarSidebarLayout() {
         </div>
     );
 }
+

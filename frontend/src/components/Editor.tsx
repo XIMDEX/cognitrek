@@ -97,7 +97,7 @@ export default function Editor({resourceId}) {
             .then(e => e.json())
             .then(json => setData(json))
             .catch(console.error)
-    }, [])
+    }, [resourceId])
 
     return (
         <XEditor data={data ? handleData(data) : ""}/> 
