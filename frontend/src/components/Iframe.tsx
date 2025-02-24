@@ -4,8 +4,8 @@ interface IframeProps {
   title: string;
   style?: React.CSSProperties;
   className?: string;
-  message?: { type: string; content: string; id: number};
-  requestMessage?: (message: string, data: string) => void;
+  message?: { type: string; content: string; id: number, token?: string };
+  requestMessage?: (message: string, data: string, postMessage) => void;
 }
 
 export default function Iframe({
@@ -46,7 +46,7 @@ export default function Iframe({
 
       if (type === "cognitrek") {
         console.log("Mensaje recibido del iframe:", content);
-        requestMessage?.(content, data);
+        requestMessage?.(content, data,  iframeRef.current?.contentWindow?.postMessage);
       }
     };
 

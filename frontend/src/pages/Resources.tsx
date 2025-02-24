@@ -6,6 +6,7 @@ import Iframe from "../components/Iframe";
 import { COGNITREK_BACKEND_URL, XDAM_FRONTEND_URL } from "../config/constants";
 import Visor from "./Visor";
 import Editor from "../components/Editor";
+import { useAuthStore } from "../store/authStore";
 
 const Resources = () => {
 
@@ -13,8 +14,9 @@ const Resources = () => {
   const [resourceId, setResourceId] = useState('');
   const [visor, setVisor] = useState(false)
   const [type, setType] = useState('list')
+  const {user} = useAuthStore.getState();
 
-  const action = (message: string, data: string) => {
+  const action = (message: string, data: string, postMessage) => {
     console.log('Message received:', message, data);
     if (resourceId !== data) setResourceId(data)
     if (message === 'list') {
@@ -33,6 +35,9 @@ const Resources = () => {
     if (message === 'editor') {
       setType('editor')
     }
+    if (message === 'READY' ) {
+      postMessage({type: 'cognitrek:token', content: {token: user?.token, data}, id: 2}, '*')
+    }
   }
 
 
@@ -50,7 +55,7 @@ const Resources = () => {
             left: 0,
           }}
           requestMessage={action}
-          message={{ type: 'cognitrek', content: 'READY', id:1}}
+          message={{ type: 'cognitrek', content: 'READY', id:1, token: user?.token }}
         />
       )}
       { showResource && resourceId !== '' && (
