@@ -10,8 +10,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::table('user_variants', function (Blueprint $table) {
+            $table->dropForeign('user_variants_variant_id_foreign');
+        });
+
         Schema::table('variants', function (Blueprint $table) {
-            $table->string('adaptation_id', 36)->index()->nullable()->after('id');
+            $table->string('adaptation_id', 36)->nullable()->index()->after('id');
         });
 
         Schema::table('user_variants', function(Blueprint $table) {
@@ -32,8 +36,17 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Antes de eliminar la columna, deshacer los otros cambios
+        Schema::table('user_variants', function (Blueprint $table) {
+            $table->unsignedBigInteger('variant_id')->change();
+            $table->foreign('variant_id')
+                ->references('id')
+                ->on('variants')
+                ->onDelete('cascade');
+        });
+
         Schema::table('variants', function (Blueprint $table) {
-            $table->dropColumn('group_uuid');
+            $table->dropColumn('adaptation_id');
         });
     }
 };
