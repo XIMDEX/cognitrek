@@ -28,6 +28,6 @@ class UserVariantService {
         if ($adaptation) {
             return $adaptation;
         }
-        return [];
+        return null;
     }
 }

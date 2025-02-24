@@ -202,11 +202,14 @@ class VariantController extends Controller
         }
         $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
 
-        $adaptation = $this->userVariantService->getUserAdaptation($resource->id, $userHash);
+        $user_adaptation = $this->userVariantService->getUserAdaptation($resource->id, $userHash);
+        $available_adaptations = $this->variantService->getAdaptations($resource->id);
 
-        if (!$adaptation) $adaptation = [];
-        return response()->json($adaptation);
+        foreach ($available_adaptations as $key => $available_adaptation) {
+            $available_adaptations[$key]['selected'] = $user_adaptation && ($user_adaptation->variant_id === $available_adaptation->condition_id);
+        }
 
+        return response()->json($available_adaptations);
     }
 
 
@@ -226,7 +229,7 @@ class VariantController extends Controller
         $adaptationID = $validated['adaptation_id'];
 
         $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
-        $resource_adaptations = $this->variantService->search(['resource_id' => $resource->id, 'adaptation_id' => $adaptationID])->first();
+        $resource_adaptations = $this->variantService->search(['resource_id' => $resource->id, 'label' => $adaptationID])->first();
 
 
         $adaptation = $this->userVariantService->getUserAdaptation($resource->id, $userHash);
@@ -240,15 +243,22 @@ class VariantController extends Controller
             $adaptation->variant_id = $adaptationID;
             $adaptation->save();
         } else {
+            // $adaptation = $this->variantService->create([
+            //     'resource_id' => $resource->id,
+            //     'dam_id' => $resourceID,
+            //     'label' => $resource_adaptations->label,
+            //     'conditions' => $resource_adaptations->condition(),
+            //     'user_id' => $userHash,
+            //     'created_at' => now(),
+            //     'updated_at' => now(),
+            //     'type' => 'content',
+            //     'condition_id' => $resource_adaptations->condition_id
+            // ]);
             $adaptation = $this->userVariantService->create([
-                'resource_id' => $resource->id,
-                'dam_id' => $resourceID,
-                'label' => $resource_adaptations->label,
-                'conditions' => $resource_adaptations->condition(),
-                'user_id' => $userHash,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'variant_id' => $resource_adaptations->adaptation_id,
+                'user_id' => $userHash
             ]);
+            $adaptation->save();
         }
 
         if ($adaptation) {
@@ -257,7 +267,7 @@ class VariantController extends Controller
                     'resource_id' => $resource->id,
                     'label' => $adaptationID,
                     'user_id' => $userID,
-                    'adaptation_id' => $adaptationID,
+                    'adaptation_id' => $adaptation->variant_id,
                     'created_at' => $adaptation['created_at']
                 ]
             ], 201);

@@ -38,8 +38,8 @@ export default function CardResourceAssign({resource, userId, onChange}) {
             </div>
             <Select 
                 options={[
-                    {value: "0", label: "Original", selected: true},
-                    ...data.map((variant: {id: string, label:string}) => ({value: variant.id, label: variant.label, selected: false}))
+                    {value: "0", label: "Original", selected: !data.some((e: {id: string, label:string, selected?: boolean}) => e.selected)},
+                    ...data.map((variant: {id: string, label:string, selected?: boolean}) => ({value: variant.id, label: variant.label, selected: variant?.selected ?? false}))
                 ]}
                 selectId={resource.id}
                 onChange={onChange}

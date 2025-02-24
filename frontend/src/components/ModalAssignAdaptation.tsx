@@ -8,7 +8,17 @@ import { assingAdaptationResource, getAdaptationUserResource } from "../services
 export default function ModalAssignAdaptation({user, showModal, group, resource, onCloseModal }) {
     const [selectedAdaptation, setSelectedAdaptation] = useState(null)
     const [adaptations, setAdaptations] = useState<{label: string, id: string}[]>([])
-    const handleSaveAdaptation = () => {}
+    const handleSaveAdaptation = () => {
+        if (selectedAdaptation) {
+            assingAdaptationResource(resource.id, user.id, selectedAdaptation)
+                .then(() => {
+                    onCloseModal()
+                })
+                .catch((err) => {
+                    console.error(err)
+                })
+        }
+    }
 
     const handleSelectedAdaptation = (value) => {
         setSelectedAdaptation(value)
@@ -25,18 +35,8 @@ export default function ModalAssignAdaptation({user, showModal, group, resource,
             })
     }, [user, resource])
 
-    useEffect(() => {
-        if (selectedAdaptation) {
-            assingAdaptationResource(resource.id, user.id, selectedAdaptation)
-                .then(() => {
-                    onCloseModal()
-                })
-                .catch((err) => {
-                    console.error(err)
-                })
-        }
-
-    }, [selectedAdaptation, onCloseModal, resource, user])
+    // useEffect(() => {
+    // }, [selectedAdaptation, onCloseModal, resource, user])
 
     if (!group || !user || !resource) return null
 

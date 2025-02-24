@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Variant;
+use Illuminate\Support\Str;
 
 class VariantService
 {
@@ -15,12 +16,18 @@ class VariantService
         $variant = new Variant();
         $variant->resource_id = $data['resource_id'];
         $variant->condition_id = $data['condition_id'];
+        if (!isset($data['content'])) {
+            $data['content'] = json_encode([]);
+        }
         if (is_array($data['content'])) $data['content'] = json_encode($data['content']);
         $variant->content = $data['content'];
         $variant->type = $data['type'];
         $variant->label = $data['label'];
         if ($data['proccessing_id']) {
             $variant->proccessing_id = $data['proccessing_id'];
+        }
+        if (!isset($data['condition_id'])) {
+            $variant->condition_id = (string) Str::uuid();
         }
         $variant->save();
 
