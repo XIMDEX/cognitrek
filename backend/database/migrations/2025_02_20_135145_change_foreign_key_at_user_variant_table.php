@@ -14,13 +14,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('user_variants', function (Blueprint $table) {
-            // Verificar si la restricción existe antes de intentar eliminarla
             $foreignKeys = $this->listTableForeignKeys('user_variants');
             if (in_array('user_variants_variant_id_foreign', $foreignKeys)) {
                 $table->dropForeign('user_variants_variant_id_foreign');
             }
 
-            // Crear la nueva clave foránea
             $table->foreign('variant_id')
                 ->references('adaptation_id')
                 ->on('variants')
