@@ -11,11 +11,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('variants', function (Blueprint $table) {
-            $table->text('adaptation_id')->index()->nullable()->after('id');
+            $table->text('adaptation_id', )->index()->nullable()->after('id');
         });
 
         Schema::table('user_variants', function(Blueprint $table) {
-            $table->text('variant_id')->change();
+            $table->string('variant_id', 36)->change();
         });
 
         DB::transaction(function () {
