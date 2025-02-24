@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Services\Ximdex\XDamService;
 use App\Jobs\LLMBatchProcessor;
 use App\Services\ConditionService;
 use App\Services\ResourceService;
@@ -16,20 +15,17 @@ class VariantController extends Controller
     protected $variantService;
     protected $userVariantService;
     protected $resourceService;
-    protected $xDamService;
     protected $conditionService;
 
     public function __construct(
         VariantService $variantService,
         ResourceService $resourceService,
-        XDamService $xDamService,
         ConditionService $conditionService,
         UserVariantService $userVariantService
     ) {
         $this->variantService = $variantService;
         $this->userVariantService = $userVariantService;
         $this->resourceService = $resourceService;
-        $this->xDamService = $xDamService;
         $this->conditionService = $conditionService;
     }
 
@@ -226,6 +222,8 @@ class VariantController extends Controller
         if (!$resource) {
             return response()->json([]);
         }
+
+        $adaptationID = $validated['adaptation_id'];
 
         $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
         $resource_adaptations = $this->variantService->search(['resource_id' => $resource->id, 'adaptation_id' => $adaptationID])->first();

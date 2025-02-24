@@ -70,7 +70,7 @@ class XDamService extends XimdexBaseService
         try {
             $response = $this->httpClient->request('GET', $this->base_url . '/user/me', [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $this->token,
+                    'Authorization' => 'Bearer ' . $token,
                 ]
             ]);
             return $response;
@@ -85,12 +85,13 @@ class XDamService extends XimdexBaseService
             throw new Exception("Error fetching -- Not authenticated");
         }
         try {
-            $response = $this->httpClient->request($method, "{$this->base_url}/$request", [
+            $params  = [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->token,
                 ],
                 'json' => $body
-            ], $json);
+            ];
+            $response = $this->httpClient->request($method, "{$this->base_url}/$request", $params, $json);
         } catch (Exception $e) {
             throw new Exception("Error fetching -- " . $e->getMessage(), $e->getCode(), $e);
         }
