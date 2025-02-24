@@ -11,9 +11,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Modules\LlmModule\Services\LLMService;
 
 class LLMBatchProcessor implements ShouldQueue
@@ -185,6 +185,8 @@ class LLMBatchProcessor implements ShouldQueue
 
                     $output = $this->useService($this->serviceAlias, $params);
 
+                    $adaptation = $this->variantService->search(['resource_id' => $resourceID, 'label' => $validated['label']])->first();
+
                     $params['data']['resource'] = [];
                     $data_variant = [
                         'resource_id' => $resourceID,
@@ -196,6 +198,8 @@ class LLMBatchProcessor implements ShouldQueue
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
+
+                    $data_variant['adaptation_id'] = $adaptation ?  $adaptation->adaptation_id : Str::uuid();
 
                     if ($output['id'] && !$output['error']) {
                         $data_variant['proccessing_id'] = $output['batch_id'] ?? $output['id'];
