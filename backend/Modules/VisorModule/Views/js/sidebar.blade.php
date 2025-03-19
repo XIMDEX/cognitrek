@@ -227,10 +227,9 @@
         })
 
         if (window.is_changed) {
-            data['user_data'] = window.user_data.
+            data['user_data'] = window.user_data;
             data['conditions'] = [user_condition, ...data['conditions']]
         }
-        
         fetch("{{ route('v.variant.store') }}", {
             method: 'POST',
             headers: {
