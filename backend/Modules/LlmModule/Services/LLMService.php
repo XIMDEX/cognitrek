@@ -4,6 +4,7 @@ namespace Modules\LlmModule\Services;
 
 use App\Models\Resource;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class LLMService
 {
@@ -21,6 +22,7 @@ class LLMService
     public function performAction($params = null)
     {
         try {
+            Storage::disk('local')->put("llm_params_lastest.json", json_encode($params, JSON_PRETTY_PRINT));
             $this->checkParams($params);
 
             $llmManager = new LLMManager();
@@ -62,6 +64,8 @@ class LLMService
 
     public function checkParams($params)
     {
+        Log::info('LLMService::performAction', $params);
+
         if (!isset($params['id'])) {
             throw new \Exception('id param not found');
         }
