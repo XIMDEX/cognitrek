@@ -123,6 +123,7 @@ class VisorController extends Controller
             if (!$variants) $variants = [];
 
             $content = $this->resourceService->getContent($resource);
+            return response()->json($content);
             $content['lang'] = $content['language'];
             $content['id'] = $resourceId;
 
