@@ -4,10 +4,12 @@ namespace App\Services;
 
 use App\Models\Variant;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class VariantService
 {
-    public function getAll() {
+    public function getAll()
+    {
         return Variant::all();
     }
 
@@ -59,7 +61,7 @@ class VariantService
 
     public function getAllByResourceLabel(string $resourceId, string $label)
     {
-       return $this->search(['resource_id' => $resourceId, 'label' => $label]);
+        return $this->search(['resource_id' => $resourceId, 'label' => $label]);
     }
 
     public function search(array $data)
@@ -71,7 +73,8 @@ class VariantService
         return $query->get();
     }
 
-    public function update($data) {
+    public function update($data)
+    {
         if (!isset($data['id'])) {
             return null;
         }
@@ -113,7 +116,6 @@ class VariantService
         return $variant;
     }
 
-
     public function adaptHTML($jsonHTML, $jsonAdaptation, $condition_label, $condition_id)
     {
         $output = [];
@@ -121,127 +123,134 @@ class VariantService
         if (!$jsonAdaptation) return $jsonHTML;
 
         foreach ($jsonHTML as $idx => $section) {
-            $output[] = $this->parseSection($section, $jsonAdaptation[$section['page']-1], $condition_label, $condition_id);
+            $output[] = $this->parseSection($section, $jsonAdaptation[$section['page'] - 1], $condition_label, $condition_id);
         }
 
         return $output;
     }
 
-
     public function parseSection($pageData, $modifications, $condition_label, $condition_id)
     {
+        Log::info('VariantService::parseSection', [
+            'pageData' => $pageData,
+            'modifications' => $modifications,
+            'condition_label' => $condition_label,
+            'condition_id' => $condition_id,
+        ]);
 
         foreach ($pageData['blocks'] as &$block) {
-            if ($block['type'] === 'text') {
-                if (!isset($block['blocks']) || count($block['blocks']) === 0) {
-                    continue;
+            $blockType = is_object($block) ? $block->type : $block['type'];
+            if ($blockType !== 'text') {
+                continue;
+            }
+
+            $blocks = is_object($block) ? $block->blocks : $block['blocks'];
+            if (!isset($blocks) || count($blocks) === 0) {
+                continue;
+            }
+
+            $fullText = '';
+            foreach ($blocks as $subBlock) {
+                $fullText .= isset($subBlock['content']) ? $subBlock['content'] : '';
+            }
+
+            $blockModifications = array_filter($modifications, function ($mod) use ($block) {
+                $modId = is_object($mod) ? ($mod->id ?? null) : ($mod['id'] ?? null);
+                if ($modId === null) return false;
+                
+                $blockId = null;
+                if (is_object($block)) {
+                    $blockId = $block->id ?? null;
+                } else {
+                    $blockId = $block['id'] ?? null;
                 }
+                
+                return $modId === $blockId;
+            });
 
-                $fullText = '';
-                foreach ($block['blocks'] as $subBlock) {
-                    $fullText .= isset($subBlock['content']) ? $subBlock['content'] : '';
-                }
+            if (count($blockModifications) === 0) {
+                continue;
+            }
 
+            if (!isset($block->original)) {
+                $block->original = $fullText;
+            }
 
-                $blockModifications = array_filter($modifications, function ($mod) use ($block) {
-                    return $mod['id'] === $block['id'];
-                });
+            $block->condition_label = $condition_label;
+            $block->condition_id = $condition_id;
 
-                if (count($blockModifications) === 0) {
-                    continue;
-                }
+            usort($blockModifications, function ($a, $b) {
+                return $a['start_position_modification'] <=> $b['start_position_modification'];
+            });
 
-                if (!isset($block['original'])) {
-                    $block['original'] = $fullText;
-                }
-
-                $block['condition_label'] = $condition_label;
-                $block['condition_id'] = $condition_id;
-
-                usort($blockModifications, function ($a, $b) {
-                    return $a['start_position_modification'] <=> $b['start_position_modification'];
-                });
-
-
-                foreach ($block['blocks'] as $key => $subBlock) {
-                    if (array_column($blockModifications, 'id')) {
-                        $newText = '';
-                        $length_txt_change = 0;
-                        if (!isset($block['blocks'][$key]['modified'])) {
-                            $block['blocks'][$key]['modified'] = [];
-                        }
-                        foreach ($blockModifications as $mod) {
-                            if (!isset($mod['type']) && isset($mod['modified_text'])) $mod['type'] = 'modified';
-                            if ($mod['id'] == $subBlock['id']) {
-                                if ($mod['type'] == 'added') {
-
-                                } elseif ( $mod['type'] == 'deleted') {
-
-                                } else {
-                                    $start = $mod['start_position_modification'];
-                                    $end = $mod['end_position_modification'];
-
-                                    $txt_raw = mb_substr($subBlock['content'], $start, $end - $length_txt_change);
-                                    $newText .= mb_substr($subBlock['content'], 0, $start - $length_txt_change);
-                                    $newText .= $mod['modified_text'];
-                                    $newText .= mb_substr($subBlock['content'], $end , -1);
-                                    $length_txt_change += strlen($txt_raw) - strlen($mod['modified_text']);
-
-                                    $block['blocks'][$key]['action'] = 'modified';
-                                    $block['blocks'][$key]['original'] = $block['blocks'][$key];
-                                    $block['blocks'][$key]['modified'][] = [
-                                        'action' => 'modified',
-                                        'start' =>  $start,
-                                        'end' =>  $end,
-                                        'content' =>  $mod['modified_text'],
-                                        'original' => $subBlock['content'],
-                                        'condition_label' => $condition_label,
-                                        'condition_id' => $condition_id
-                                    ];
-                                    $block['blocks'][$key]['condition_label'] = $condition_label;
-                                    $block['blocks'][$key]['condition_id'] = $condition_id;
-                                    break;
-                                }
-
-                            }
-                        }
-                        continue;
+            foreach ($blocks as $key => $subBlock) {
+                if (array_column($blockModifications, 'id')) {
+                    $newText = '';
+                    $length_txt_change = 0;
+                    
+                    if (!isset($block->blocks[$key]->modified)) {
+                        $block->blocks[$key]->modified = [];
                     }
 
+                    foreach ($blockModifications as $mod) {
+                        if (!isset($mod['type']) && isset($mod['modified_text'])) {
+                            $mod['type'] = 'modified';
+                        }
+
+                        if ($mod['id'] == $subBlock['id']) {
+                            if ($mod['type'] == 'added' || $mod['type'] == 'deleted') {
+                                continue;
+                            }
+
+                            $start = $mod['start_position_modification'];
+                            $end = $mod['end_position_modification'];
+
+                            $txt_raw = mb_substr($subBlock['content'], $start, $end - $length_txt_change);
+                            $newText .= mb_substr($subBlock['content'], 0, $start - $length_txt_change);
+                            $newText .= $mod['modified_text'];
+                            $newText .= mb_substr($subBlock['content'], $end, -1);
+                            $length_txt_change += strlen($txt_raw) - strlen($mod['modified_text']);
+
+                            $block->blocks[$key]->action = 'modified';
+                            $block->blocks[$key]->original = $block->blocks[$key];
+                            $block->blocks[$key]->modified[] = [
+                                'action' => 'modified',
+                                'start' => $start,
+                                'end' => $end,
+                                'content' => $mod['modified_text'],
+                                'original' => $subBlock['content'],
+                                'condition_label' => $condition_label,
+                                'condition_id' => $condition_id
+                            ];
+                            $block->blocks[$key]->condition_label = $condition_label;
+                            $block->blocks[$key]->condition_id = $condition_id;
+                            break;
+                        }
+                    }
                 }
-
-                // foreach ($blockModifications as $mod) {
-                //     $start = $mod['start_position_modification'];
-                //     $end = $mod['end_position_modification'];
-                //     $newText .= mb_substr($fullText, $lastIndex, $start - $lastIndex);
-                //     $newText .= $mod['modified_text'];
-                //     $lastIndex = $end;
-                // }
-
-                // $newText .= mb_substr($fullText, $lastIndex);
-
-                if (!isset($block['modified'])) {
-                    $block['modified'] = [];
-                }
-
-                $newBlock = $block;
-
-                if (count($newBlock['blocks']) === 1) {
-                    $newBlock['blocks'][0]['content'] = $newText;
-                } else {
-                    $newBlock['blocks'] = [
-                        [
-                            'type'    => 'text',
-                            'content' => $newText,
-                            'id'      => $newBlock['blocks'][0]['id']
-                        ]
-                    ];
-                }
-
-                unset($newBlock['original'], $newBlock['modified']);
-
-                $block['modified'][] = $newBlock;
             }
+
+            if (!isset($block->modified)) {
+                $block->modified = [];
+            }
+
+            $newBlock = clone $block;
+
+            if (count($newBlock->blocks) === 1) {
+                $newBlock->blocks[0]->content = $newText;
+            } else {
+                $newBlock->blocks = [
+                    [
+                        'type'    => 'text',
+                        'content' => $newText,
+                        'id'      => $newBlock->blocks[0]->id
+                    ]
+                ];
+            }
+
+            unset($newBlock->original, $newBlock->modified);
+
+            $block->modified[] = $newBlock;
         }
 
         return $pageData;
@@ -252,7 +261,7 @@ class VariantService
         try {
             $adaptations = Variant::where('resource_id', $resourceID)->select('label', 'adaptation_id')->distinct()->get();
             return $adaptations;
-        } catch(\Exception $exc) {
+        } catch (\Exception $exc) {
             return [];
         }
     }
