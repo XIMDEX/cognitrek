@@ -23,6 +23,7 @@ class VisorController extends Controller
 
     public function visor(Request $request, $resourceId)
     {
+      
         try {
             $edit = $request->boolean('edit', false);
             $json = $request->boolean('json', false);
@@ -31,6 +32,7 @@ class VisorController extends Controller
             if ($variant_label) $variant_label = urldecode($variant_label);
             $service  = $this->getService('visor_service');
             $resource = $this->resourceService->getByXdamId($resourceId);
+
             if (!$resource) {
                 throw new \Exception('Resource not found');
             }
@@ -39,19 +41,21 @@ class VisorController extends Controller
                 $variants_label = $this->variantService->getAllByResourceLabel($resource->id, $variant_label);
                 $is_proccessing = $variants_label->some(function($v) {return isset($v->proccessing_id);});
             }
-
+        
             if ($is_proccessing && $edit_mode) $edit_mode = false;
             $variants = $this->variantService->getAllByResourceOrdered($resource->id);
             $conditions_collection = $this->conditionService->getAll();
 
             if (!$variants) $variants = [];
+
             $content = $this->resourceService->getContent($resource);
+
             $content['lang'] = $content['language'];
             $content['id'] = $resourceId;
 
             $conditions_variant = [];
             $processing = [];
-
+       
             if ($variant_label && $variants_label) {
                 $sections = $content['sections'];
 
@@ -68,6 +72,7 @@ class VisorController extends Controller
                 $content['sections'] = $sections;
             }
             $conditions = [];
+           
             foreach ($conditions_collection as $cd) {
                 $data_cond = [
                     'name' => $cd->label,
@@ -93,7 +98,7 @@ class VisorController extends Controller
             $variants_grouped = array_merge([['label' => 'Original', 'conditions' => [], 'selected' => !$variant_label]], $variants_grouped);
             return $service->visor($content, $variants_grouped, $conditions, $edit, $edit_mode, $json);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Resource view failed', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Resource view failed at line ' . $e->getLine() . ': ' . $e->getMessage()], 500);
         }
     }
 
