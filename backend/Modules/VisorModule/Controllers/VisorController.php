@@ -98,7 +98,7 @@ class VisorController extends Controller
             $variants_grouped = array_merge([['label' => 'Original', 'conditions' => [], 'selected' => !$variant_label]], $variants_grouped);
             return $service->visor($content, $variants_grouped, $conditions, $edit, $edit_mode, $json);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Resource view failed at line ' . $e->getLine() . ': ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Resource view failed in file ' . $e->getFile() . ' at line ' . $e->getLine() . ': ' . $e->getMessage()], 500);
         }
     }
 
@@ -123,7 +123,6 @@ class VisorController extends Controller
             if (!$variants) $variants = [];
 
             $content = $this->resourceService->getContent($resource);
-            return response()->json($content);
             $content['lang'] = $content['language'];
             $content['id'] = $resourceId;
 
