@@ -37,10 +37,6 @@ class VariantService
             if (is_numeric($keys[0])) {
                 $data['content'] = [$data['content']];
             }
-            // If content is already an array of arrays, keep it as is
-            elseif (is_array($data['content'][0])) {
-                $data['content'] = [$data['content']];
-            }
             $data['content'] = json_encode($data['content']);
         }
         
