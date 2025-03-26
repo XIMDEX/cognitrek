@@ -199,7 +199,7 @@ class LLMBatchProcessor implements ShouldQueue
                         'updated_at' => now(),
                     ];
 
-                    $data_variant['adaptation_id'] = $adaptation->adaptation_id  ?  $adaptation->adaptation_id : Str::uuid();
+                    $data_variant['adaptation_id'] = $adaptation && isset($adaptation->adaptation_id) ? $adaptation->adaptation_id : Str::uuid();
 
                     if ($output['id'] && !$output['error']) {
                         $data_variant['proccessing_id'] = $output['batch_id'] ?? $output['id'];
