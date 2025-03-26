@@ -15,18 +15,47 @@ class VariantService
 
     public function create(array $data): Variant
     {
+        Log::info('Creating variant: ' . json_encode($data));
         $variant = new Variant();
         $variant->resource_id = $data['resource_id'];
         $variant->condition_id = $data['condition_id'];
+        
+        // Handle content data
         if (!isset($data['content'])) {
             $data['content'] = json_encode([]);
         }
-        if (is_array($data['content'])) $data['content'] = json_encode($data['content']);
+        
+        // If content is an array and contains batch data, extract it
+        if (is_array($data['content']) && isset($data['content']['batch'])) {
+            $data['content'] = $data['content']['batch'];
+        }
+        
+        // Ensure content is in the desired nested array format
+        if (is_array($data['content'])) {
+            // If content has numeric keys, wrap it in an array
+            $keys = array_keys($data['content']);
+            if (is_numeric($keys[0])) {
+                $data['content'] = [$data['content']];
+            }
+            // If content is already an array of arrays, keep it as is
+            elseif (is_array($data['content'][0])) {
+                $data['content'] = [$data['content']];
+            }
+            $data['content'] = json_encode($data['content']);
+        }
+        
         $variant->content = $data['content'];
         $variant->type = $data['type'];
         $variant->label = $data['label'];
         if ($data['proccessing_id']) {
             $variant->proccessing_id = $data['proccessing_id'];
+        }else{
+            $variant->proccessing_id = null;
+        }
+        if(isset($data['adaptation_id'])){
+            $variant->adaptation_id = $data['adaptation_id'];
+        }else if(!isset($data['proccessing_id'])){
+            $variant->adaptation_id = (string) Str::uuid();
         }
         if (!isset($data['condition_id'])) {
             $variant->condition_id = (string) Str::uuid();
