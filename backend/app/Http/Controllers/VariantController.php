@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Services\Ximdex\XDamService;
-use App\Models\Condition;
+use App\Jobs\LLMBatchProcessor;
 use App\Services\ConditionService;
 use App\Services\ResourceService;
+use App\Services\UserVariantService;
 use Illuminate\Http\Request;
 use App\Services\VariantService;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,15 +13,19 @@ use Symfony\Component\HttpFoundation\Response;
 class VariantController extends Controller
 {
     protected $variantService;
+    protected $userVariantService;
     protected $resourceService;
-    protected $xDamService;
     protected $conditionService;
 
-    public function __construct(VariantService $variantService, ResourceService $resourceService, XDamService $xDamService, ConditionService $conditionService)
-    {
+    public function __construct(
+        VariantService $variantService,
+        ResourceService $resourceService,
+        ConditionService $conditionService,
+        UserVariantService $userVariantService
+    ) {
         $this->variantService = $variantService;
+        $this->userVariantService = $userVariantService;
         $this->resourceService = $resourceService;
-        $this->xDamService = $xDamService;
         $this->conditionService = $conditionService;
     }
 
@@ -44,24 +48,25 @@ class VariantController extends Controller
     }
 
     public function store(Request $request)
-    // public function store(Request $request, $resourceID)
     {
         try {
 
-            // $validated = $request->validate([
-            //     'resource_id' => 'required|string',
-            //     'conditions' => 'required|array',
-            //     'content' => 'required|string',
-            // ]);
-            $resourceID = '9df6f257-4ad4-44a6-b3ca-6dc97216b8ca';
-    
-            // $params = $this->xDamService->getResource($resourceID);
+            $validated = $request->validate([
+                'resource_id' => 'string',
+                'conditions' => 'required|array',
+                'content' => 'required|string',
+                'user_data' => 'array',
+                'label' => 'required|string'
+            ]);
+
+            $resourceID = $validated['resource_id'];
+
             $resource = $this->resourceService->getByXdamId($resourceID);
             $json = $this->resourceService->getContent($resource);
-            $language = 'es';// $json['language'];
-    
+            $language = $json['language'];
+
             $json_pages = [];
-    
+
             foreach ($json['sections'] as $section) {
                 $page = ['page' => $section['page'], 'blocks' => []];
                 foreach ($section['blocks'] as $block) {
@@ -71,106 +76,73 @@ class VariantController extends Controller
                 }
                 $json_pages[] = $page;
             }
-    
+
             if (!$resource) {
                 throw new \Exception('Resource not found');
             }
-    
-            $validated = [
-                'resource_id' => $resourceID,
-                'conditions' => [39, 57],
-                'label' => 'Demo variant dyslexia low + user',
-                'type' => 'content',
-                'user_data' => ''
-            ];
-    
+
             if (count($validated['conditions']) === 0) {
                 throw new \Exception('Conditions not found');
             }
-    
+
             $conditions = $this->conditionService->getManyByIds($validated['conditions']);
-            $variants = $this->variantService->getAllByResourceLabel($resourceID, $validated['label']);
-    
-            if (count($variants) > 0) {
-                // Add adaptation to $json
-    
-            }
-    
+            $variants = $this->variantService->getAllByResourceLabel($resource->id, $validated['label']);
+
+            $any_processing = $variants->reject(function($v) {
+                return $v->proccessing_id;
+            });
+
+
             if ($conditions->count() !== count($validated['conditions'])) {
                 throw new \Exception('Condition not found');
             }
-    
-            $user_condition = $conditions->filter(function ($item) {
-                return $item->type === 'user';
-            })->first();
-    
-            $conditions = $conditions->reject(function ($item) {
-                return $item->type === 'user';
-            });
-    
-            if ($user_condition) {
-                $validated['conditions'] = array_filter($validated['conditions'], function($item) use ($user_condition) {
-                    return $item !== $user_condition->id;
-                });
-            }
 
-            if ($user_condition && $validated['user_data']) {
-                //* Process combination $content + user_data modification
-                $new_content = [];
-                
-                //* Create new variant
-                $this->variantService->create([
+            $user_condition = $conditions->filter(function ($item) {
+                return $item->type == 'User' || $item->type === 'user';
+            })->first();
+
+
+            if ($any_processing->count() == 0 && $user_condition && is_array($validated['user_data'])) {
+
+                $uservariant =$variant_user = $this->variantService->create([
                     'resource_id' => $resource->id,
                     'condition_id' => $user_condition->id,
-                    'content' => json_encode($new_content),
+                    'content' => json_encode($validated['user_data']),
                     'type' => 'content',
                     'label' => $validated['label'],
+                    'proccessing_id' => null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
-            }
-    
-            foreach ($conditions as $condition) {
-                if (!$condition) {
-                    throw new \Exception('Condition not found');
+
+                if ($uservariant) {
+                    $conditions = $conditions->reject(function($c) use ($user_condition) {
+                        return $c->id == $user_condition->id;
+                    });
                 }
-    
-                $validated['conditions'] = array_filter($$validated['conditions'], function($item) use ($condition) {
-                    return $item !== $condition->id;
-                });
-    
-                $data = [
-                    'data' => [
-                        'prompt' => $condition->type,
-                        'resource' => $json_pages,
-                        'lang' => $language,
-                    ],
-                    'id' => $resourceID,
+            }
+
+            $variants = collect(isset($variant_user) ? [$variant_user] : []);
+
+            LLMBatchProcessor::dispatch('llm_service', [
+                'data' => [
                     'lang' => $language,
-                    'action' => 'adaptation'
-                ];
-    
-                $adaptation = $this->useService('llm_service', $data);
-    
-                $this->variantService->create([
-                    'resource_id' => $resource->id,
-                    'condition_id' => $condition->id,
-                    'content' => json_encode($adaptation['content']),
-                    'type' => 'content',
-                    'proccessing_id' => $adaptation['id'] ? $validated : $adaptation['content'],
-                    'label' => $validated['label'],
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-    
-                if ($adaptation['id']) {
-                    throw new \Exception('processing');
-                }
-            }
-    
-            $variant  = '';
-            // $variant = $this->variantService->create($validated);
-            return response()->json($variant, 201);
+                    'id' => $resource->id,
+                    'dam_id' => $resourceID,
+                    'action' => 'adaptation',
+                    'data' => [
+                        'prompt' => '',
+                        'resource' => [],
+                        'lang' => $language
+                        ]
+                    ],
+                'action' => 'adaptation',
+                'validated' => $validated,
+                'done' => $variants->pluck('id')->toArray(),
+                'todo' => $conditions->pluck('id')->toArray()
+            ])->onConnection('database');
+
+            return response(['status' => 'proccessing'], 201);
         } catch (\Exception $e) {
             if ($e->getMessage() == 'processing') {
                 return response()->json(['status' => 'processing'], Response::HTTP_ACCEPTED);
@@ -194,7 +166,7 @@ class VariantController extends Controller
         return response()->json($variant);
     }
 
-    public function getAllByResourceLabel(Request $request) 
+    public function getAllByResourceLabel(Request $request)
     {
 
     }
@@ -205,5 +177,102 @@ class VariantController extends Controller
             return response()->json(['message' => 'Variant deleted successfully']);
         }
         return response()->json(['error' => 'Variant not found'], 404);
+    }
+
+    public function getResourceAdaptations(Request $request, $resourceID)
+    {
+
+        $resource = $this->resourceService->getByXdamId($resourceID);
+        if (!$resource) {
+            return response()->json([]);
+        }
+
+        $variants = $this->variantService->getAdaptations($resource->id);
+
+        if (!$variants) $variants = [];
+        return response()->json($variants);
+    }
+
+    public function getUserAdaptation(Request $request, $resourceID, $userID)
+    {
+
+        $resource = $this->resourceService->getByXdamId($resourceID);
+        if (!$resource) {
+            return response()->json([]);
+        }
+        $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
+
+        $user_adaptation = $this->userVariantService->getUserAdaptation($resource->id, $userHash);
+        $available_adaptations = $this->variantService->getAdaptations($resource->id);
+
+        foreach ($available_adaptations as $key => $available_adaptation) {
+            $available_adaptations[$key]['selected'] = $user_adaptation && ($user_adaptation->variant_id === $available_adaptation->condition_id);
+        }
+
+        return response()->json($available_adaptations);
+    }
+
+
+    public function setUserAdaptation(Request $request, $resourceID, $userID)
+    {
+        $validated = $request->validate([
+            'adaptation_id' => 'required|string',
+        ]);
+        if (!$validated) {
+            return response()->json(['error' => 'Adaptation not found'], 404);
+        }
+        $resource = $this->resourceService->getByXdamId($resourceID);
+        if (!$resource) {
+            return response()->json([]);
+        }
+
+        $adaptationID = $validated['adaptation_id'];
+
+        $userHash = $this->useService('anonymizer_service', ['action' => 'encode', 'value' => $userID]);
+        $resource_adaptations = $this->variantService->search(['resource_id' => $resource->id, 'label' => $adaptationID])->first();
+
+
+        $adaptation = $this->userVariantService->getUserAdaptation($resource->id, $userHash);
+
+        if (!$resource_adaptations && $adaptation) {
+            $adaptation->delete();
+            return response()->json(['status' => 'unassigned'], 200);
+        }
+
+        if ($adaptation && $adaptation->variant_id !== $adaptationID) {
+            $adaptation->variant_id = $adaptationID;
+            $adaptation->save();
+        } else {
+            // $adaptation = $this->variantService->create([
+            //     'resource_id' => $resource->id,
+            //     'dam_id' => $resourceID,
+            //     'label' => $resource_adaptations->label,
+            //     'conditions' => $resource_adaptations->condition(),
+            //     'user_id' => $userHash,
+            //     'created_at' => now(),
+            //     'updated_at' => now(),
+            //     'type' => 'content',
+            //     'condition_id' => $resource_adaptations->condition_id
+            // ]);
+            $adaptation = $this->userVariantService->create([
+                'variant_id' => $resource_adaptations->adaptation_id,
+                'user_id' => $userHash
+            ]);
+            $adaptation->save();
+        }
+
+        if ($adaptation) {
+            return response()->json([
+                'data' => [
+                    'resource_id' => $resource->id,
+                    'label' => $adaptationID,
+                    'user_id' => $userID,
+                    'adaptation_id' => $adaptation->variant_id,
+                    'created_at' => $adaptation['created_at']
+                ]
+            ], 201);
+        }
+        return response()->json(['error' => 'Error creating adaptation'], 500);
+
     }
 }

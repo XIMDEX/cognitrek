@@ -2,17 +2,15 @@
 
 return [
     'xdir' => [
-        'uri' => env('XDAM_URI'),
+        'uri' => env('XDIR_URI') . '/' . env('XDIR_VERSION'),
         'auth' => 'xdir',
-        'login_endpoint' => env('XDAM_URI') . '/login',
-        'username' => env('XDIR_USERNAME'),
-        'password' => env('XDIR_PASSWORD')
+        'login_endpoint' => env('XDIR_URI') . '/login',
+        'enabled' => env('ENABLED_XDIR', false)
     ],
     'xdam' => [
-        'uri' => env('XDAM_URI'),
+        'uri' => env('XDAM_URI') . '/' . env('XDAM_VERSION'),
         'auth' => env('XDAM_AUTH', 'xdir'),
-        'login_endpoint' => env('XDAM_URI') . '/login',
-        'username' => env('XDAM_USERNAME'),
-        'password' => env('XDAM_PASSWORD')
+        'login_endpoint' => env('XDAM_URI') . '/' . env('XDAM_VERSION') . '/auth/login',
+
     ]
 ];

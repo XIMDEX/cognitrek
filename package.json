@@ -1,0 +1,16 @@
+{
+  "name": "cognitrek",
+  "version": "1.0.0",
+  "description": "Main repository for NGI Search Project COGNITREK",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pre:commit": "cd frontend && npm run lint && npm run ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

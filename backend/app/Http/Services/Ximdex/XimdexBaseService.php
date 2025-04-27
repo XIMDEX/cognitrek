@@ -16,7 +16,7 @@ abstract class XimdexBaseService
 
     protected $user;
     protected $token;
-    protected $tokenCacheKey = 'ximdex_api_token'; 
+    protected $tokenCacheKey = 'ximdex_api_token';
     protected $tokenTTL = 3600;
 
     protected $authService = 'xdir';
@@ -34,10 +34,15 @@ abstract class XimdexBaseService
 
         $service = config("ximdex.{$this->authService}");
         $this->login_url =  $service['login_endpoint'];
-        $this->username = $service['username'];
-        $this->password = $service['password'];
 
     }
+
+    abstract protected function login($email, $password);
+
+    abstract protected function logout();
+
+    abstract protected function whoami($token);
+    
     /**
      * Checks if the user is currently authenticated.
      * It retrieves the token from cache and verifies if it is not expired.
@@ -47,7 +52,7 @@ abstract class XimdexBaseService
     protected function checkAuth()
     {
         $token = Cache::get($this->tokenCacheKey);
-        
+
 
         if (!$token || $this->isTokenExpired($token)) {
             $this->login($this->username, $this->password);
@@ -58,42 +63,14 @@ abstract class XimdexBaseService
         return true;
     }
 
-    public function login($username, $password) 
-    { 
-        try {
-            $response = $this->httpClient->request('POST', $this->login_url, [
-                'json' => [
-                    'username' => $username,
-                    'password' => $password,
-                ]
-            ]);
-        } catch (Exception $e) {
-            throw new Exception("Error during login request: " . $e->getMessage(), $e->getCode(), $e);
-        }
-
-        if (empty($response['token'])) {
-            throw new Exception("No token received from login.");
-        } try {
-            $response = $this->httpClient->request('POST', $this->login_url, [
-                'json' => [
-                    'username' => $username,
-                    'password' => $password,
-                ]
-            ]);
-        } catch (Exception $e) {
-            throw new Exception("Error during login request: " . $e->getMessage(), $e->getCode(), $e);
-        }
-
-    if (empty($response['token'])) {
-        throw new Exception("No token received from login.");
-    }
-
-        Cache::put($this->tokenCacheKey, $this->token, $this->tokenTTL);
-    }
-
     protected function isTokenExpired($token)
     {
         return false;
+    }
+
+    protected function setTokenCache($token)
+    {
+        Cache::put($this->tokenCacheKey, $token, $this->tokenTTL);
     }
 
 }

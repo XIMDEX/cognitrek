@@ -9,6 +9,12 @@ return [
         'llm_service' => \Modules\LlmModule\Services\LLMService::class,
     ],
 
+    'languages' => [
+        'es' => 'spanish (Spain)',
+        'en' => 'english',
+        'fr' => 'french'
+    ],
+
     'drivers' => [
         'OpenAI' => [
             'class' => \Modules\LlmModule\Services\Adapters\OpenAIAdapter::class,
@@ -40,32 +46,37 @@ return [
         'dyslexia' => [
             'low' => storage_path('Prompts/dyslexia/low.txt'),
             'mid' => storage_path('Prompts/dyslexia/mid.txt'),
-            'hight' => storage_path('Prompts/dyslexia/hight.txt')
+            'high' => storage_path('Prompts/dyslexia/high.txt')
         ],
         'attention_deficit' => [
             'low' => storage_path('Prompts/attention_deficit/low.txt'),
             'mid' => storage_path('Prompts/attention_deficit/mid.txt'),
-            'hight' => storage_path('Prompts/attention_deficit/hight.txt')
+            'high' => storage_path('Prompts/attention_deficit/high.txt')
         ],
         'autism' => [
             'low' => storage_path('Prompts/autism/low.txt'),
             'mid' => storage_path('Prompts/autism/mid.txt'),
-            'hight' => storage_path('Prompts/autism/hight.txt')
+            'high' => storage_path('Prompts/autism/high.txt')
         ],
         'visual_impairment' => [
             'low' => storage_path('Prompts/visual_impairment/low.txt'),
             'mid' => storage_path('Prompts/visual_impairment/mid.txt'),
-            'hight' => storage_path('Prompts/visual_impairment/hight.txt')
+            'high' => storage_path('Prompts/visual_impairment/high.txt')
         ],
         'hearing_impairment' => [
             'low' => storage_path('Prompts/hearing_impairment/low.txt'),
             'mid' => storage_path('Prompts/hearing_impairment/mid.txt'),
-            'hight' => storage_path('Prompts/hearing_impairment/hight.txt')
+            'high' => storage_path('Prompts/hearing_impairment/high.txt')
         ],
         'language_disorder' => [
             'low' => storage_path('Prompts/language_disorder/low.txt'),
             'mid' => storage_path('Prompts/language_disorder/mid.txt'),
-            'hight' => storage_path('Prompts/language_disorder/hight.txt')
+            'high' => storage_path('Prompts/language_disorder/high.txt')
         ],
+    ],
+    'actions' => [
+        'resume' => false,          // OpenAI | Anthropic | Llama | false
+        'conceptual_map' => false,   // OpenAI | Anthropic | Llama | false
+        'adaptation' => false      // OpenAI | Anthropic | Llama | false
     ]
 ];

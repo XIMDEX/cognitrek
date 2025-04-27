@@ -4,26 +4,33 @@ namespace Modules\LlmModule\Services;
 
 use App\Models\Resource;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class LLMService
 {
     protected $llmManager;
 
-    private const LANGUAGES_DICT = [
-        'es' => 'spanish (Spain)',
-        'en' => 'english'
+    private $languages;
+
+    const ACTIONS = [
+        'ADAPTATION' => 'adaptation',
+        'RESUME' => 'resume',
+        'CONCEPTUAL_MAP' => 'conceptual_map',
+        'ALL' => 'all'
     ];
 
     public function performAction($params = null)
     {
         try {
+            Storage::disk('local')->put("llm_params_lastest.json", json_encode($params, JSON_PRETTY_PRINT));
             $this->checkParams($params);
 
             $llmManager = new LLMManager();
             $this->init($llmManager);
             
-            if ($params['action'] == 'adaptation') {
-                $adaptation = $this->generateAdaptation($params['data']);
+            if ($params['action'] == self::ACTIONS['ADAPTATION']) {
+                $opts = $params['opts'] ?? [];
+                $adaptation = $this->generateAdaptation($params['data'], $opts);
 
                 return $adaptation;
             }
@@ -36,13 +43,13 @@ class LLMService
             $id = $params['id'];
 
             switch ($params['action']) {
-                case 'resume':
+                case self::ACTIONS['RESUME']:
                     $this->generateResume($id, $content, $params['lang']);
                     break;
-                case 'conceptual_map':
+                case self::ACTIONS['CONCEPTUAL_MAP']:
                     $this->generateMentalMap($id, $content, $params['lang']);
                     break;
-                case 'all':
+                case self::ACTIONS['ALL']:
                     $this->generateResume($id, $content, $params['lang']);
                     $this->generateMentalMap($id, $content, $params['lang']);
                     break;
@@ -57,6 +64,8 @@ class LLMService
 
     public function checkParams($params)
     {
+        Log::info('LLMService::performAction', $params);
+
         if (!isset($params['id'])) {
             throw new \Exception('id param not found');
         }
@@ -73,6 +82,7 @@ class LLMService
     public function init(LLMManager $llmManager)
     {
         $this->llmManager = $llmManager;
+        $this->languages = config('llmmodule.languages');
     }
 
     /**
@@ -81,7 +91,7 @@ class LLMService
      */
     public function generateResume($id, $content, string $lang = 'es')
     {
-        $llm = $this->llmManager->getDefaultLLM();
+        $llm = $this->llmManager->getLlmByAction(self::ACTIONS['RESUME']);
 
         $prompt = config('llmmodule.prompts.resume');
         $prompt = file_get_contents($prompt);
@@ -99,7 +109,7 @@ class LLMService
      */
     public function generateMentalMap($id, $content, string $lang = 'en')
     {
-        $llm = $this->llmManager->getDefaultLLM();
+        $llm = $this->llmManager->getLlmByAction(self::ACTIONS['CONCEPTUAL_MAP']);
 
         $prompt = config('llmmodule.prompts.conceptual_map');
         $prompt = file_get_contents($prompt);
@@ -123,12 +133,25 @@ class LLMService
     /**
      * Generate a variant (a rewritten version) of the resource content in the specified language, preserving meaning but changing wording.
      */
-    public function generateAdaptation($params)
+    public function generateAdaptation($params, $opts=[])
+    {
+        return (isset($params['id']) && $params['id']) 
+            ? $this->continueAdaptation($params, $opts) 
+            : $this->generateNewAdaptation($params, $opts);
+    }
+
+    public function call($params, $action)
+    {
+        $llm = $this->llmManager->getLlmByAction($action);
+        return $llm->call($params['prompt'], $params['options'], $params['path']);
+    }
+
+    private function generateNewAdaptation($params, $opts)
     {
         $content = $params['resource'];
         $prompt = $params['prompt'];
 
-        $llm = $this->llmManager->getDefaultLLM();
+        $llm = $this->llmManager->getLlmByAction(self::ACTIONS['ADAPTATION']);
 
         $prompt = config('llmmodule.prompts.' . $prompt);
         if (!$prompt) {
@@ -144,11 +167,41 @@ class LLMService
             $content[$key]['content'] = json_encode($value['blocks']);
             unset($content[$key]['blocks']);
         }
+        
+        $opts = [
+            'llm_manager' => [
+                'class' => LLMManager::class,
+                'action' => self::ACTIONS['ADAPTATION']
+            ],
+            'llm_sevice' => 'llm_service'
+        ];
 
-        $variant = $llm->batch($content, $prompt, []);
+        if (isset($params['maxAttempts'])) {
+            $opts['maxAttempts'] = $params['maxAttempts'];
+        }
+        if (isset($params['timeSleep'])) {
+            $opts['timeSleep'] = $params['timeSleep'];
+        }
+        return $llm->batch($content, $prompt, $opts);
+    }
 
+    private function continueAdaptation($params, $opts)
+    {
+        $llm = $this->llmManager->getLlmByAction(self::ACTIONS['ADAPTATION']);
+        $content = $params['resource'];
+        $prompt = $params['prompt'];
+        $options = [
+            'lang' => $params['lang'],
+            'batch_id' => $params['id'],
+        ];
 
-        return $variant;
+        if (isset($opts['maxAttempts'])) {
+            $options['maxAttempts'] = $opts['maxAttempts'];
+        }
+        if (isset($opts['timeSleep'])) {
+            $options['timeSleep'] = $opts['timeSleep'];
+        }
+        return $llm->batch($content, $prompt, $options);
     }
 
     /**
@@ -177,9 +230,8 @@ class LLMService
 
     public function getLanguage($lang)
     {
-        if (isset(self::LANGUAGES_DICT[$lang])) return self::LANGUAGES_DICT[$lang];
+        if (isset($this->languages[$lang])) return $this->languages[$lang];
         return 'same language of content';
     }
-
 
 }

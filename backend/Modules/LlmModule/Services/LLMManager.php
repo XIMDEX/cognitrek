@@ -24,6 +24,14 @@ class LLMManager
         return $this->getLLM($default);
     }
 
+    public function getLlmByAction($action)
+    {
+        $adaptator = $this->config['actions'][$action];
+        if (!$adaptator) $adaptator = $this->config['default'];
+
+        return $this->getLLM($adaptator);
+    }
+
     public function getLLM($name)
     {
         $drivers = $this->config['drivers'];

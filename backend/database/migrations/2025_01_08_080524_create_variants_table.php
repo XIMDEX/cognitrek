@@ -12,7 +12,7 @@ class CreateVariantsTable extends Migration
             $table->id();
             $table->uuid('resource_id');
             $table->unsignedBigInteger('condition_id');
-            $table->text('content');
+            $table->longText('content');
             $table->text('type');  // content | resume | conceptual_map
             $table->string('label')->nullable(); 
             $table->string('proccessing_id')->nullable();
