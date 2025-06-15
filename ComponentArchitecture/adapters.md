@@ -2,11 +2,11 @@
 
 **This component is located in the `backend/Modules/LlmModule` folder.**
 
-This document provides a comprehensive overview of the LLMModule, designed to manage and interact with different Large Language Model (LLM) APIs in a modular and extensible manner. The module includes adapters for various LLM services, enabling integration with platforms such as OpenAI, Anthropic, and Llama.
+This document provides a comprehensive overview of the LLMModule, designed to manage and interact with various large language model (LLM) APIs in a modular and extensible manner. The module includes adapters for various LLM services, enabling integration with platforms such as OpenAI, Anthropic, and Llama.
 
 # Module Overview
 
-The LLMModule facilitates interactions with multiple LLM providers through a standardized interface. This modular design enables flexibility and scalability, allowing developers to easily integrate new LLMs by implementing specific adapters.
+The LLMModule facilitates interaction with multiple LLM providers through a standardized interface. This modular design enables flexibility and scalability, allowing developers to easily integrate new LLMs by implementing specific adapters.
 
 # File Descriptions
 
@@ -41,7 +41,7 @@ The LLMManager class manages the selection and initialization of the appropriate
 
 3. Adapters
 
-Adapters enable the integration of specific LLM providers. Each adapter extends LLMBaseAdapter and implements the call($prompt, array $options = []) method to interact with the respective API.
+Adapters enable integration of specific LLM providers. Each adapter extends LLMBaseAdapter and implements the call($prompt, array $options = []) method to interact with the respective API.
 * AnthropicAdapter.php:
     * Interacts with Anthropic’s API.
     * Example endpoint: /v1/complete.
