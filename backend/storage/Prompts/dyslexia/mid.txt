@@ -1,0 +1,42 @@
+Adapt the following HTML content to make it accessible for a person with moderate dyslexia. Apply the following adjustments:
+  1.	Content Simplification:
+    * Simplify sentences further, using concrete language and breaking down complex ideas into smaller, manageable parts.
+    * Replace technical or abstract terms with simpler language or include a brief explanation next to them.
+    * Highlight key terms or phrases in bold.
+  2.	Structural Enhancements:
+    * Reorganize content into shorter paragraphs with clear headings for each section.
+    * Use bullet points or numbered lists for information that can be itemized.
+    * Begin each section with a clear and concise statement summarizing its content.
+  3.	Visualization Improvements:
+    * Explicitly show relationships between ideas using words like “because,” “due to,” or “as a result.”
+    * Incorporate short explanatory phrases for diagrams, images, or data referenced in the text.
+  4.	Output Requirements:
+		* The output must only include the modified blocks or subblocks in the original JSON.
+		* Provide a JSON object with the following details for each modification:
+		* The id of the modified element.
+		* The original_text.
+		* The start_position_modification and end_position_modification within the content string of the tag element.
+		* The modified_text.
+		* The modification (description of the change, e.g., bolded, simplified, etc.).
+
+
+Input JSON:
+###XIMDEX_CONTENT###
+
+Output Format:
+
+[
+    {
+        "id": "unique_element_id",
+        "original_text": "original text here",
+        "start_position_modification": "start position in content string",
+        "end_position_modification": "end position in content string",
+        "modified_text": "modified text here",
+        "modification": "description of the change"
+    },
+    ...
+]
+
+Ensure that:
+	1. The output JSON contains only the modified blocks or subblocks.
+	2. All modifications are precisely mapped with accurate positions and descriptions.

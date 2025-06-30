@@ -1,0 +1,44 @@
+Adapt the following HTML content to make it more accessible for a person with moderate ADHD. Apply the following adjustments:
+	1.	Content Simplification and Engagement:
+		•	Use very concise language, avoiding lengthy or complex sentence structures.
+		•	Break long paragraphs into multiple, smaller segments to maintain attention.
+		•	Emphasize critical words or phrases to guide the reader’s focus.
+	2.	Structured Layout:
+		•	Segment the content with descriptive headings, ensuring each section starts with a clear summary.
+		•	Use bullet points or numbered lists wherever possible to present key details.
+		•	Keep paragraphs short (1–3 sentences) to facilitate scanning and reduce visual overload.
+	3.	Enhanced Visual Organization:
+		•	Use consistent formatting (bold or italic) to highlight important information without overloading the text.
+		•	Clearly describe images, charts, or tables with succinct captions, ensuring relevance and context.
+		•	Include transitional words (like “thus,” “so,” “as a result”) to explicitly show connections between ideas.
+	4.	Output Requirements:
+		•	The output must only include the modified blocks or subblocks in the original JSON.
+		•	Provide a JSON array with objects containing the following details for each modification:
+		•	id: The ID of the modified element.
+		•	original_text: The original text before modification.
+		•	start_position_modification: The start index of the modification within the element’s content string.
+		•	end_position_modification: The end index of the modification within the element’s content string.
+		•	modified_text: The updated text after applying the adjustments.
+		•	modification: A brief description of the change (e.g., “simplified sentence,” “created bullet list,” “bolded key term,” etc.).
+
+Input JSON:
+
+###XIMDEX_CONTENT###
+
+Output Format Example:
+
+[
+  {
+    "id": "unique_element_id",
+    "original_text": "original text here",
+    "start_position_modification": "start position in content string",
+    "end_position_modification": "end position in content string",
+    "modified_text": "modified text here",
+    "modification": "description of the change"
+  }
+]
+
+Please ensure:
+	1.	The JSON contains only the modified blocks or subblocks.
+	2.	All modifications are accurately tracked with precise positions and clear descriptions.
+

@@ -1,0 +1,43 @@
+Adapt the following HTML content to make it more accessible for a person with mild ADHD. Apply the following adjustments:
+	1.	Content Clarity and Engagement:
+        •	Use concise, direct language to maintain engagement.
+        •	Break down longer sentences where possible, but keep the text flowing naturally.
+        •	Include brief highlighted key phrases to help the reader stay focused.
+	2.	Structural Enhancements:
+        •	Organize content into clear sections with descriptive headings.
+        •	Utilize short paragraphs and avoid large text blocks.
+        •	Include bullet points or numbered lists to present information step by step.
+	3.	Visual Cues and Readability:
+        •	Add minimal and consistent visual cues (like bold or italics) to emphasize important content.
+        •	Use spacing or small separators between major points to reduce visual clutter.
+        •	Provide descriptive text for images or diagrams to keep attention aligned with the main content.
+	4.	Output Requirements:
+        •	The output must only include the modified blocks or subblocks in the original JSON.
+        •	Provide a JSON array with objects containing the following details for each modification:
+        •	id: The ID of the modified element.
+        •	original_text: The original text before modification.
+        •	start_position_modification: The start index of the modification within the element’s content string.
+        •	end_position_modification: The end index of the modification within the element’s content string.
+        •	modified_text: The updated text after applying the adjustments.
+        •	modification: A brief description of the change (e.g., “shortened sentence,” “bolded key phrase,” “added bullet list,” etc.).
+
+Input JSON:
+
+###XIMDEX_CONTENT###
+
+Output Format Example:
+
+[
+  {
+    "id": "unique_element_id",
+    "original_text": "original text here",
+    "start_position_modification": "start position in content string",
+    "end_position_modification": "end position in content string",
+    "modified_text": "modified text here",
+    "modification": "description of the change"
+  }
+]
+
+Please ensure:
+	1.	The JSON contains only the modified blocks or subblocks.
+	2.	All modifications are accurately tracked with precise positions and clear descriptions.

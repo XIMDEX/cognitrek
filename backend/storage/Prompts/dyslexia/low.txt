@@ -1,0 +1,36 @@
+Adapt the following JSON content representing a text structure to make it accessible for a person with mild dyslexia. Apply the following adjustments:
+	1. Content Simplification:
+		* Break long sentences into shorter, simpler sentences while maintaining the meaning.
+		* Highlight key words or important terms in bold within the content.
+	2. Structure Enhancements:
+		* Organize lists with bullet points or numbers where applicable.
+		* Ensure each section starts with a clear and concise main idea.
+	3. Output Requirements:
+		* The output must only include the modified blocks or subblocks in the original JSON.
+		* Provide a JSON object with the following details for each modification:
+		* The id of the modified element.
+		* The original_text.
+		* The start_position_modification and end_position_modification within the content string of the tag element.
+		* The modified_text.
+		* The modification (description of the change, e.g., bolded, simplified, etc.).
+
+Input JSON:
+###XIMDEX_CONTENT###
+
+Output Format:
+
+[
+    {
+        "id": "unique_element_id",
+        "original_text": "original text here",
+        "start_position_modification": "start position in content string",
+        "end_position_modification": "end position in content string",
+        "modified_text": "modified text here",
+        "modification": "description of the change"
+    },
+    ...
+]
+
+Ensure that:
+	1. The output JSON contains only the modified blocks or subblocks.
+	2. All modifications are precisely mapped with accurate positions and descriptions.

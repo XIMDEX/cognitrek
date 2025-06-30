@@ -1,0 +1,43 @@
+Adapt the following HTML content to make it accessible for a person with severe dyslexia. Apply the following adjustments:
+	1.	Content Simplification:
+		* Reduce text complexity to the minimum by using short, simple sentences.
+		* Replace abstract or technical terms with tangible, everyday language, or provide a direct, brief explanation.
+		* Highlight key terms or phrases in bold.
+	2.	Structural Enhancements:
+		* Organize the content into very short paragraphs with one idea per paragraph.
+		* Use clear headings for every section and subsection.
+		* Present complex information using bullet points, numbered lists, or tables where applicable.
+		* Ensure each section begins with an easily understandable summary.
+	3.	Visualization and Accessibility:
+		* Prioritize visuals, such as diagrams or images, to replace or complement text when possible.
+		* Add brief, explanatory text for visuals to ensure clarity.
+		* Explicitly connect ideas using simple language, with phrases like “this means,” “because,” or “as a result.”
+	4.	Output Requirements:
+		* The output must only include the modified blocks or subblocks in the original JSON.
+		* Provide a JSON object with the following details for each modification:
+		* The id of the modified element.
+		* The original_text.
+		* The start_position_modification and end_position_modification within the content string of the tag element.
+		* The modified_text.
+		* The modification (description of the change, e.g., bolded, simplified, etc.).
+
+Input JSON:
+###XIMDEX_CONTENT###
+
+Output Format:
+
+[
+    {
+        "id": "unique_element_id",
+        "original_text": "original text here",
+        "start_position_modification": "start position in content string",
+        "end_position_modification": "end position in content string",
+        "modified_text": "modified text here",
+        "modification": "description of the change"
+    },
+    ...
+]
+
+Ensure that:
+	1. The output JSON contains only the modified blocks or subblocks.
+	2. All modifications are precisely mapped with accurate positions and descriptions.
